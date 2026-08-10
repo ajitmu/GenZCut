@@ -1,0 +1,1015 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+    ViewData["HideNavbar"] = true;
+}
+
+<style>
+    :root {
+        --sidebar: #151515;
+        --sidebar-light: #202020;
+        --accent: #c9a227;
+        --bg: #f6f6f4;
+        --card: #ffffff;
+        --text: #171717;
+        --muted: #858585;
+        --border: #e8e8e5;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, Arial, Helvetica, sans-serif;
+    }
+
+    .admin-layout {
+        min-height: 100vh;
+        display: flex;
+    }
+
+    /* ================= SIDEBAR ================= */
+
+    .admin-sidebar {
+        width: 255px;
+        background: var(--sidebar);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        padding: 24px 16px;
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 100;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 5px 10px 28px;
+        border-bottom: 1px solid #303030;
+    }
+
+    .brand-logo {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--accent);
+        color: #111;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 800;
+    }
+
+    .brand-name {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: .3px;
+    }
+
+    .brand-subtitle {
+        color: #888;
+        font-size: 11px;
+        margin-top: 3px;
+    }
+
+    .sidebar-section {
+        margin-top: 28px;
+    }
+
+    .sidebar-title {
+        color: #777;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.4px;
+        padding: 0 12px;
+        margin-bottom: 10px;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        color: #bdbdbd;
+        text-decoration: none;
+        padding: 12px 13px;
+        margin: 4px 0;
+        border-radius: 9px;
+        font-size: 14px;
+        transition: .2s;
+    }
+
+        .sidebar-link:hover {
+            background: var(--sidebar-light);
+            color: white;
+        }
+
+        .sidebar-link.active {
+            background: #2b2b2b;
+            color: white;
+            box-shadow: inset 3px 0 0 var(--accent);
+        }
+
+    .sidebar-icon {
+        width: 20px;
+        text-align: center;
+        font-size: 15px;
+    }
+
+    .sidebar-bottom {
+        margin-top: auto;
+    }
+
+    .logout-btn {
+        width: 100%;
+        border: 1px solid #363636;
+        background: transparent;
+        color: #bbb;
+        padding: 11px;
+        border-radius: 9px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: .2s;
+    }
+
+        .logout-btn:hover {
+            background: #292929;
+            color: white;
+        }
+
+    /* ================= MAIN ================= */
+
+    .admin-main {
+        margin-left: 255px;
+        width: calc(100% - 255px);
+        min-height: 100vh;
+    }
+
+    .top-header {
+        height: 74px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 34px;
+    }
+
+    .page-location {
+        color: #999;
+        font-size: 12px;
+    }
+
+        .page-location strong {
+            color: #333;
+        }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .notification {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        position: relative;
+    }
+
+    .notification-dot {
+        width: 6px;
+        height: 6px;
+        background: #c9a227;
+        border-radius: 50%;
+        position: absolute;
+        top: 8px;
+        right: 8px;
+    }
+
+    .header-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .avatar {
+        width: 38px;
+        height: 38px;
+        background: #1b1b1b;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .header-user strong {
+        display: block;
+        font-size: 13px;
+    }
+
+    .header-user span {
+        color: #999;
+        font-size: 11px;
+    }
+
+    /* ================= CONTENT ================= */
+
+    .dashboard-content {
+        padding: 32px 34px;
+    }
+
+    .welcome-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 28px;
+    }
+
+        .welcome-row h1 {
+            font-size: 28px;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -.5px;
+        }
+
+        .welcome-row p {
+            margin: 7px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+    .date-box {
+        border: 1px solid var(--border);
+        background: white;
+        padding: 9px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #666;
+    }
+
+    /* ================= STATS ================= */
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 17px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .stat-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stat-label {
+        color: #777;
+        font-size: 12px;
+    }
+
+    .stat-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        background: #f5f2e8;
+        color: #9d7d17;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .stat-value {
+        font-size: 27px;
+        font-weight: 700;
+        margin-top: 16px;
+    }
+
+    .stat-footer {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 7px;
+        font-size: 11px;
+        color: #999;
+    }
+
+    .growth {
+        color: #4d8a5a;
+        font-weight: 600;
+    }
+
+    /* ================= GRID ================= */
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+    }
+
+    .card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 22px;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .card-header span {
+            color: #999;
+            font-size: 11px;
+        }
+
+    /* ================= APPOINTMENTS ================= */
+
+    .appointment {
+        display: grid;
+        grid-template-columns: 55px 1fr auto;
+        align-items: center;
+        gap: 14px;
+        padding: 13px 0;
+        border-bottom: 1px solid #f0f0ed;
+    }
+
+        .appointment:last-child {
+            border-bottom: none;
+        }
+
+    .time {
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+    }
+
+    .customer {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .customer-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #eeeeeb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .customer strong {
+        display: block;
+        font-size: 12px;
+    }
+
+    .customer span {
+        display: block;
+        color: #999;
+        font-size: 10px;
+        margin-top: 2px;
+    }
+
+    .status {
+        padding: 5px 9px;
+        border-radius: 20px;
+        font-size: 10px;
+        background: #f2f2ef;
+        color: #666;
+    }
+
+        .status.confirmed {
+            background: #edf6ef;
+            color: #47724e;
+        }
+
+    /* ================= QUICK ACTIONS ================= */
+
+    .quick-action {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 13px;
+        border: 1px solid #ededeb;
+        border-radius: 9px;
+        text-decoration: none;
+        color: #222;
+        margin-bottom: 10px;
+        transition: .2s;
+    }
+
+        .quick-action:hover {
+            border-color: #d6d1bd;
+            background: #faf9f4;
+            transform: translateY(-1px);
+        }
+
+    .quick-icon {
+        width: 37px;
+        height: 37px;
+        border-radius: 8px;
+        background: #f5f2e8;
+        color: #9d7d17;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
+
+    .quick-action strong {
+        display: block;
+        font-size: 12px;
+    }
+
+    .quick-action span {
+        color: #999;
+        font-size: 10px;
+    }
+
+    /* ================= LOWER CARDS ================= */
+
+    .lower-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 17px;
+        margin-top: 20px;
+    }
+
+    .mini-card h4 {
+        margin: 0;
+        font-size: 13px;
+    }
+
+    .mini-value {
+        font-size: 25px;
+        font-weight: 700;
+        margin: 14px 0 4px;
+    }
+
+    .mini-description {
+        color: #999;
+        font-size: 10px;
+    }
+
+    /* ================= RESPONSIVE ================= */
+
+    @@media (max-width: 1100px) {
+        .stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .lower-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media (max-width: 700px) {
+        .admin-sidebar {
+            width: 70px;
+            padding: 20px 8px;
+        }
+
+        .brand-name,
+        .brand-subtitle,
+        .sidebar-title,
+        .sidebar-text {
+            display: none;
+        }
+
+        .brand {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .sidebar-link {
+            justify-content: center;
+        }
+
+        .admin-main {
+            margin-left: 70px;
+            width: calc(100% - 70px);
+        }
+
+        .top-header {
+            padding: 0 15px;
+        }
+
+        .header-user div:last-child {
+            display: none;
+        }
+
+        .dashboard-content {
+            padding: 22px 15px;
+        }
+
+        .welcome-row {
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .date-box {
+            display: none;
+        }
+
+        .stats {
+            grid-template-columns: 1fr;
+        }
+
+        .lower-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+
+<div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+
+        <div class="brand">
+
+            <div class="brand-logo">
+                GZ
+            </div>
+
+            <div>
+                <div class="brand-name">GenZCut</div>
+                <div class="brand-subtitle">Salon Management</div>
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-section">
+
+            <div class="sidebar-title">
+                Overview
+            </div>
+
+            <a href="#" class="sidebar-link active">
+                <span class="sidebar-icon">▦</span>
+                <span class="sidebar-text">Dashboard</span>
+            </a>
+
+            <a href="#" class="sidebar-link">
+                <span class="sidebar-icon">◉</span>
+                <span class="sidebar-text">Appointments</span>
+            </a>
+
+        </div>
+
+
+        <div class="sidebar-section">
+
+            <div class="sidebar-title">
+                Management
+            </div>
+
+            <a href="#" class="sidebar-link">
+                <span class="sidebar-icon">♙</span>
+                <span class="sidebar-text">Customers</span>
+            </a>
+
+            <a href="#" class="sidebar-link">
+                <span class="sidebar-icon">✂</span>
+                <span class="sidebar-text">Services</span>
+            </a>
+
+            <a href="#" class="sidebar-link">
+                <span class="sidebar-icon">♟</span>
+                <span class="sidebar-text">Barbers</span>
+            </a>
+
+        </div>
+
+
+        <div class="sidebar-section">
+
+            <div class="sidebar-title">
+                System
+            </div>
+
+            <a href="#" class="sidebar-link">
+                <span class="sidebar-icon">⚙</span>
+                <span class="sidebar-text">Settings</span>
+            </a>
+
+        </div>
+
+
+        <div class="sidebar-bottom">
+
+            <form asp-controller="Admin"
+                  asp-action="Logout"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <button class="logout-btn" type="submit">
+                    Sign out
+                </button>
+
+            </form>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+    <main class="admin-main">
+
+        <!-- HEADER -->
+        <header class="top-header">
+
+            <div class="page-location">
+                Admin / <strong>Dashboard</strong>
+            </div>
+
+            <div class="header-right">
+
+                <div class="notification">
+                    ♢
+                    <span class="notification-dot"></span>
+                </div>
+
+                <div class="header-user">
+
+                    <div class="avatar">
+                        A
+                    </div>
+
+                    <div>
+                        <strong>Administrator</strong>
+                        <span>@ViewBag.AdminEmail</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- CONTENT -->
+        <section class="dashboard-content">
+
+            <div class="welcome-row">
+
+                <div>
+
+                    <h1>Good morning, Admin</h1>
+
+                    <p>
+                        Here's an overview of your salon today.
+                    </p>
+
+                </div>
+
+                <div class="date-box">
+                    Today
+                </div>
+
+            </div>
+
+
+            <!-- STATISTICS -->
+            <div class="stats">
+
+                <!-- TOTAL CUSTOMERS -->
+                <div class="stat-card">
+
+                    <div class="stat-card-top">
+
+                        <span class="stat-label">
+                            Total Customers
+                        </span>
+
+                        <div class="stat-icon">
+                            ♙
+                        </div>
+
+                    </div>
+
+                    <div class="stat-value">
+                        @ViewBag.TotalCustomers
+                    </div>
+
+                    <div class="stat-footer">
+
+                        <span class="growth">—</span>
+
+                        Registered customers
+
+                    </div>
+
+                </div>
+
+
+                <!-- APPOINTMENTS -->
+                <div class="stat-card">
+
+                    <div class="stat-card-top">
+
+                        <span class="stat-label">
+                            Appointments
+                        </span>
+
+                        <div class="stat-icon">
+                            ◷
+                        </div>
+
+                    </div>
+
+                    <div class="stat-value">
+                        @ViewBag.TotalAppointments
+                    </div>
+
+                    <div class="stat-footer">
+
+                        <span class="growth">—</span>
+
+                        Today's bookings
+
+                    </div>
+
+                </div>
+
+
+                <!-- SERVICES -->
+                <div class="stat-card">
+
+                    <div class="stat-card-top">
+
+                        <span class="stat-label">
+                            Services
+                        </span>
+
+                        <div class="stat-icon">
+                            ✂
+                        </div>
+
+                    </div>
+
+                    <div class="stat-value">
+                        @ViewBag.TotalServices
+                    </div>
+
+                    <div class="stat-footer">
+                        Available services
+                    </div>
+
+                </div>
+
+
+                <!-- PENDING -->
+                <div class="stat-card">
+
+                    <div class="stat-card-top">
+
+                        <span class="stat-label">
+                            Pending
+                        </span>
+
+                        <div class="stat-icon">
+                            ◌
+                        </div>
+
+                    </div>
+
+                    <div class="stat-value">
+                        @ViewBag.PendingAppointments
+                    </div>
+
+                    <div class="stat-footer">
+                        Awaiting confirmation
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- MAIN GRID -->
+            <div class="dashboard-grid">
+
+                <!-- TODAY'S APPOINTMENTS -->
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <h3>Today's Appointments</h3>
+
+                        <span>Recent activity</span>
+
+                    </div>
+
+
+                    <div class="appointment">
+
+                        <div class="time">
+                            --
+                        </div>
+
+                        <div class="customer">
+
+                            <div class="customer-avatar">
+                                --
+                            </div>
+
+                            <div>
+
+                                <strong>No appointments yet</strong>
+
+                                <span>
+                                    New bookings will appear here
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <span class="status">
+                            Empty
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- QUICK ACTIONS -->
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <h3>Quick Actions</h3>
+
+                    </div>
+
+
+                    <a href="#" class="quick-action">
+
+                        <div class="quick-icon">
+                            +
+                        </div>
+
+                        <div>
+
+                            <strong>Add Service</strong>
+
+                            <span>
+                                Create salon service
+                            </span>
+
+                        </div>
+
+                    </a>
+
+
+                    <a href="#" class="quick-action">
+
+                        <div class="quick-icon">
+                            +
+                        </div>
+
+                        <div>
+
+                            <strong>Add Barber</strong>
+
+                            <span>
+                                Register a barber
+                            </span>
+
+                        </div>
+
+                    </a>
+
+
+                    <a href="#" class="quick-action">
+
+                        <div class="quick-icon">
+                            +
+                        </div>
+
+                        <div>
+
+                            <strong>View Customers</strong>
+
+                            <span>
+                                Manage customer records
+                            </span>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- LOWER CARDS -->
+            <div class="lower-grid">
+
+                <!-- AVAILABLE SERVICES -->
+                <div class="card mini-card">
+
+                    <h4>
+                        Available Services
+                    </h4>
+
+                    <div class="mini-value">
+                        @ViewBag.AvailableServices
+                    </div>
+
+                    <div class="mini-description">
+                        Services currently listed
+                    </div>
+
+                </div>
+
+
+                <!-- ACTIVE BARBERS -->
+                <div class="card mini-card">
+
+                    <h4>
+                        Active Barbers
+                    </h4>
+
+                    <div class="mini-value">
+                        @ViewBag.ActiveBarbers
+                    </div>
+
+                    <div class="mini-description">
+                        Barbers available for bookings
+                    </div>
+
+                </div>
+
+
+                <!-- COMPLETED BOOKINGS -->
+                <div class="card mini-card">
+
+                    <h4>
+                        Completed Bookings
+                    </h4>
+
+                    <div class="mini-value">
+                        @ViewBag.CompletedBookings
+                    </div>
+
+                    <div class="mini-description">
+                        Successfully completed appointments
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
