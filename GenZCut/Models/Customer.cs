@@ -24,5 +24,8 @@ namespace GenZCut.Models
         [RegularExpression(@"^[6-9][0-9]{9}$",
             ErrorMessage = "Enter a valid 10-digit Indian mobile number")]
         public string Phone { get; set; } = "";
+        public string? Address { get; set; }
+
+        public string? Gender { get; set; }
     }
 }

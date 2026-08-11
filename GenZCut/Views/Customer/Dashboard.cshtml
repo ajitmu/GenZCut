@@ -1,0 +1,260 @@
+﻿@{
+    ViewData["Title"] = "Customer Dashboard";
+
+    string customerName =
+        ViewBag.CustomerName ?? "Customer";
+
+    string customerEmail =
+        ViewBag.CustomerEmail ?? "";
+}
+
+<style>
+    body {
+        background: #f6f6f4;
+    }
+
+    .dashboard-wrapper {
+        max-width: 1150px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .welcome-card {
+        background: #171717;
+        color: white;
+        border-radius: 18px;
+        padding: 35px;
+        margin-bottom: 25px;
+    }
+
+        .welcome-card h1 {
+            font-size: 30px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .welcome-card p {
+            color: #cfcfcf;
+            margin: 0;
+        }
+
+    .email {
+        margin-top: 8px;
+        font-size: 14px;
+        color: #aaa;
+    }
+
+    .section-title {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 30px 0 18px;
+    }
+
+    .action-card {
+        background: white;
+        border: 1px solid #e5e5e5;
+        border-radius: 16px;
+        padding: 28px;
+        height: 100%;
+        box-shadow: 0 8px 25px rgba(0,0,0,.05);
+        transition: .2s;
+    }
+
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,.08);
+        }
+
+    .action-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        background: #f1f1ef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 18px;
+    }
+
+    .action-card h3 {
+        font-size: 19px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .action-card p {
+        color: #777;
+        font-size: 14px;
+        min-height: 42px;
+    }
+
+    .btn-main {
+        display: inline-block;
+        background: #171717;
+        color: white;
+        padding: 11px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+        .btn-main:hover {
+            background: #c9a227;
+            color: #111;
+        }
+
+    .btn-outline {
+        display: inline-block;
+        border: 1px solid #ddd;
+        color: #222;
+        padding: 11px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+        .btn-outline:hover {
+            background: #f5f5f5;
+        }
+
+    .logout-form {
+        margin-top: 25px;
+    }
+
+    .logout-btn {
+        border: 1px solid #ddd;
+        background: white;
+        color: #333;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+        .logout-btn:hover {
+            background: #f1f1f1;
+        }
+</style>
+
+
+<div class="dashboard-wrapper">
+
+    <!-- WELCOME -->
+    <div class="welcome-card">
+
+        <h1>
+            Welcome, @customerName 👋
+        </h1>
+
+        <p>
+            Manage your appointments and book your next salon service.
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(customerEmail))
+        {
+            <div class="email">
+                @customerEmail
+            </div>
+        }
+
+    </div>
+
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+
+    <!-- QUICK ACTIONS -->
+
+    <div class="section-title">
+        Quick Actions
+    </div>
+
+
+    <div class="row g-4">
+
+        <!-- BOOK APPOINTMENT -->
+
+        <div class="col-md-6">
+
+            <div class="action-card">
+
+                <div class="action-icon">
+                    📅
+                </div>
+
+                <h3>
+                    Book an Appointment
+                </h3>
+
+                <p>
+                    Choose a hairstyle, barber, date and time
+                    for your next visit.
+                </p>
+
+                <a asp-controller="Customer"
+                   asp-action="BookAppointment"
+                   class="btn-main">
+                    Book Appointment
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- SERVICES -->
+
+        <div class="col-md-6">
+
+            <div class="action-card">
+
+                <div class="action-icon">
+                    ✂️
+                </div>
+
+                <h3>
+                    Explore Services
+                </h3>
+
+                <p>
+                    Browse the hairstyles and salon services
+                    available at GenZCut.
+                </p>
+
+                <a asp-controller="Customer"
+                   asp-action="Index"
+                   class="btn-outline">
+                    View Services
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- LOGOUT -->
+
+    <form asp-controller="Customer"
+          asp-action="Logout"
+          method="post"
+          class="logout-form">
+
+        @Html.AntiForgeryToken()
+
+        <button type="submit"
+                class="logout-btn">
+            Logout
+        </button>
+
+    </form>
+
+</div>

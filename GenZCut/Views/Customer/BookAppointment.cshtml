@@ -1,0 +1,265 @@
+﻿@model GenZCut.Models.Appointment
+
+@{
+    ViewData["Title"] = "Book Appointment";
+}
+
+<style>
+    body {
+        background: #f6f6f4;
+    }
+
+    .booking-wrapper {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .booking-card {
+        background: white;
+        border: 1px solid #e5e5e5;
+        border-radius: 18px;
+        padding: 35px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.06);
+    }
+
+    .booking-header {
+        margin-bottom: 30px;
+    }
+
+        .booking-header h1 {
+            font-size: 30px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .booking-header p {
+            color: #777;
+            margin: 0;
+        }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 7px;
+    }
+
+    .form-control,
+    .form-select {
+        height: 48px;
+        border-radius: 9px;
+        border: 1px solid #dcdcdc;
+    }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #111;
+            box-shadow: 0 0 0 3px rgba(0,0,0,.08);
+        }
+
+    .validation {
+        color: #c0392b;
+        font-size: 13px;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .booking-btn {
+        width: 100%;
+        height: 50px;
+        border: none;
+        border-radius: 9px;
+        background: #171717;
+        color: white;
+        font-weight: 600;
+        margin-top: 15px;
+    }
+
+        .booking-btn:hover {
+            background: #c9a227;
+            color: #111;
+        }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 18px;
+        color: #555;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+        .back-link:hover {
+            color: #a17c08;
+        }
+</style>
+
+
+<div class="booking-wrapper">
+
+    <div class="booking-card">
+
+        <div class="booking-header">
+
+            <h1>Book an Appointment</h1>
+
+            <p>
+                Choose your preferred service, barber, date and time.
+            </p>
+
+        </div>
+
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div asp-validation-summary="ModelOnly"
+                 class="alert alert-danger">
+            </div>
+        }
+
+
+        <form asp-controller="Customer"
+              asp-action="BookAppointment"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+
+            <!-- SERVICE -->
+
+            <div class="mb-4">
+
+                <label for="StyleId"
+                       class="form-label">
+                    Select Service
+                </label>
+
+                <select asp-for="StyleId"
+                        class="form-select">
+
+                    <option value="">
+                        -- Select a Service --
+                    </option>
+
+                    @if (ViewBag.Hairstyles != null)
+                    {
+                        foreach (var style in ViewBag.Hairstyles)
+                        {
+                            <option value="@style.StyleId">
+                                @style.StyleName - ₹@style.Price
+                            </option>
+                        }
+                    }
+
+                </select>
+
+                <span asp-validation-for="StyleId"
+                      class="validation">
+                </span>
+
+            </div>
+
+
+            <!-- BARBER -->
+
+            <div class="mb-4">
+
+                <label for="BarberId"
+                       class="form-label">
+                    Select Barber
+                </label>
+
+                <select asp-for="BarberId"
+                        class="form-select">
+
+                    <option value="">
+                        -- Select a Barber --
+                    </option>
+
+                    @if (ViewBag.Barbers != null)
+                    {
+                        foreach (var barber in ViewBag.Barbers)
+                        {
+                            <option value="@barber.BarberId">
+                                @barber.Specialization
+                                (@barber.Experience years experience)
+                            </option>
+                        }
+                    }
+
+                </select>
+
+                <span asp-validation-for="BarberId"
+                      class="validation">
+                </span>
+
+            </div>
+
+
+            <div class="row">
+
+
+                <!-- DATE -->
+
+                <div class="col-md-6 mb-4">
+
+                    <label for="AppointmentDate"
+                           class="form-label">
+                        Appointment Date
+                    </label>
+
+                    <input asp-for="AppointmentDate"
+                           type="date"
+                           class="form-control"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+
+                    <span asp-validation-for="AppointmentDate"
+                          class="validation">
+                    </span>
+
+                </div>
+
+
+                <!-- TIME -->
+
+                <div class="col-md-6 mb-4">
+
+                    <label for="AppointmentTime"
+                           class="form-label">
+                        Appointment Time
+                    </label>
+
+                    <input asp-for="AppointmentTime"
+                           type="time"
+                           class="form-control" />
+
+                    <span asp-validation-for="AppointmentTime"
+                          class="validation">
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <button type="submit"
+                    class="booking-btn">
+                Confirm Appointment
+            </button>
+
+
+        </form>
+
+
+        <a asp-controller="Customer"
+           asp-action="Dashboard"
+           class="back-link">
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -10,9 +10,16 @@ namespace GenZCut.Controllers
 
         public CustomerController(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection")
-                ?? throw new InvalidOperationException("Connection string not found.");
+            _connectionString =
+                configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException(
+                    "Connection string not found.");
         }
+
+
+        // =====================================================
+        // CUSTOMER REGISTRATION - GET
+        // =====================================================
 
         [HttpGet]
         public IActionResult Register()
@@ -20,7 +27,13 @@ namespace GenZCut.Controllers
             return View();
         }
 
+
+        // =====================================================
+        // CUSTOMER REGISTRATION - POST
+        // =====================================================
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Register(Customer customer)
         {
             if (!ModelState.IsValid)
@@ -28,36 +41,799 @@ namespace GenZCut.Controllers
                 return View(customer);
             }
 
+            try
+            {
+                using SqlConnection connection =
+                    new SqlConnection(_connectionString);
+
+                connection.Open();
+
+                // ---------------------------------------------
+                // CHECK DUPLICATE EMAIL
+                // ---------------------------------------------
+
+                string checkEmailQuery = @"
+                    SELECT COUNT(*)
+                    FROM Users
+                    WHERE Email = @Email";
+
+                using SqlCommand checkEmailCommand =
+                    new SqlCommand(checkEmailQuery, connection);
+
+                checkEmailCommand.Parameters.AddWithValue(
+                    "@Email",
+                    customer.Email);
+
+                int emailExists =
+                    Convert.ToInt32(
+                        checkEmailCommand.ExecuteScalar());
+
+                if (emailExists > 0)
+                {
+                    ModelState.AddModelError(
+                        "Email",
+                        "This email is already registered.");
+
+                    return View(customer);
+                }
+
+
+                // ---------------------------------------------
+                // CHECK DUPLICATE PHONE
+                // ---------------------------------------------
+
+                string checkPhoneQuery = @"
+                    SELECT COUNT(*)
+                    FROM Users
+                    WHERE Phone = @Phone";
+
+                using SqlCommand checkPhoneCommand =
+                    new SqlCommand(checkPhoneQuery, connection);
+
+                checkPhoneCommand.Parameters.AddWithValue(
+                    "@Phone",
+                    customer.Phone);
+
+                int phoneExists =
+                    Convert.ToInt32(
+                        checkPhoneCommand.ExecuteScalar());
+
+                if (phoneExists > 0)
+                {
+                    ModelState.AddModelError(
+                        "Phone",
+                        "This phone number is already registered.");
+
+                    return View(customer);
+                }
+
+
+                // ---------------------------------------------
+                // INSERT USER AND GET UserId
+                // ---------------------------------------------
+
+                string userQuery = @"
+                    INSERT INTO Users
+                    (
+                        FullName,
+                        Email,
+                        Password,
+                        Phone,
+                        Role,
+                        CreatedDate
+                    )
+                    OUTPUT INSERTED.UserId
+                    VALUES
+                    (
+                        @FullName,
+                        @Email,
+                        @Password,
+                        @Phone,
+                        'Customer',
+                        GETDATE()
+                    )";
+
+                using SqlCommand userCommand =
+                    new SqlCommand(userQuery, connection);
+
+                userCommand.Parameters.AddWithValue(
+                    "@FullName",
+                    customer.FullName);
+
+                userCommand.Parameters.AddWithValue(
+                    "@Email",
+                    customer.Email);
+
+                userCommand.Parameters.AddWithValue(
+                    "@Password",
+                    customer.Password);
+
+                userCommand.Parameters.AddWithValue(
+                    "@Phone",
+                    customer.Phone);
+
+                int userId =
+                    Convert.ToInt32(
+                        userCommand.ExecuteScalar());
+
+
+                // ---------------------------------------------
+                // INSERT CUSTOMER RECORD
+                // ---------------------------------------------
+
+                string customerQuery = @"
+                    INSERT INTO Customers
+                    (
+                        UserId,
+                        Address,
+                        Gender
+                    )
+                    VALUES
+                    (
+                        @UserId,
+                        @Address,
+                        @Gender
+                    )";
+
+                using SqlCommand customerCommand =
+                    new SqlCommand(customerQuery, connection);
+
+                customerCommand.Parameters.AddWithValue(
+                    "@UserId",
+                    userId);
+
+                customerCommand.Parameters.AddWithValue(
+                    "@Address",
+                    string.IsNullOrWhiteSpace(customer.Address)
+                        ? DBNull.Value
+                        : customer.Address);
+
+                customerCommand.Parameters.AddWithValue(
+                    "@Gender",
+                    string.IsNullOrWhiteSpace(customer.Gender)
+                        ? DBNull.Value
+                        : customer.Gender);
+
+                customerCommand.ExecuteNonQuery();
+
+
+                TempData["Success"] =
+                    "Registration successful! Please login.";
+
+                return RedirectToAction("Login");
+            }
+            catch (SqlException)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Unable to save registration. Please try again.");
+
+                return View(customer);
+            }
+        }
+
+
+        // =====================================================
+        // CUSTOMER LOGIN - GET
+        // =====================================================
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+
+        // =====================================================
+        // CUSTOMER LOGIN - POST
+        // =====================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Login(string email, string password)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                ModelState.AddModelError(
+                    "email",
+                    "Email is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                ModelState.AddModelError(
+                    "password",
+                    "Password is required.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
+
+            try
+            {
+                using SqlConnection connection =
+                    new SqlConnection(_connectionString);
+
+                connection.Open();
+
+                string query = @"
+                    SELECT
+                        c.CustomerId,
+                        u.UserId,
+                        u.FullName,
+                        u.Email
+                    FROM Users u
+                    INNER JOIN Customers c
+                        ON u.UserId = c.UserId
+                    WHERE u.Email = @Email
+                    AND u.Password = @Password
+                    AND u.Role = 'Customer'";
+
+                using SqlCommand command =
+                    new SqlCommand(query, connection);
+
+                command.Parameters.AddWithValue(
+                    "@Email",
+                    email);
+
+                command.Parameters.AddWithValue(
+                    "@Password",
+                    password);
+
+                using SqlDataReader reader =
+                    command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    int customerId =
+                        Convert.ToInt32(
+                            reader["CustomerId"]);
+
+                    int userId =
+                        Convert.ToInt32(
+                            reader["UserId"]);
+
+                    string fullName =
+                        reader["FullName"].ToString() ?? "";
+
+                    string customerEmail =
+                        reader["Email"].ToString() ?? "";
+
+
+                    // -----------------------------------------
+                    // CUSTOMER SESSION
+                    // -----------------------------------------
+
+                    HttpContext.Session.SetInt32(
+                        "CustomerId",
+                        customerId);
+
+                    HttpContext.Session.SetInt32(
+                        "UserId",
+                        userId);
+
+                    HttpContext.Session.SetString(
+                        "CustomerName",
+                        fullName);
+
+                    HttpContext.Session.SetString(
+                        "CustomerEmail",
+                        customerEmail);
+
+                    return RedirectToAction(
+                        "Dashboard");
+                }
+
+                ModelState.AddModelError(
+                    "",
+                    "Invalid email or password.");
+
+                return View();
+            }
+            catch (SqlException)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Unable to connect to the database.");
+
+                return View();
+            }
+        }
+
+
+        // =====================================================
+        // CUSTOMER DASHBOARD
+        // =====================================================
+
+        [HttpGet]
+        public IActionResult Dashboard()
+        {
+            int? customerId =
+                HttpContext.Session.GetInt32(
+                    "CustomerId");
+
+            if (customerId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ViewBag.CustomerName =
+                HttpContext.Session.GetString(
+                    "CustomerName");
+
+            ViewBag.CustomerEmail =
+                HttpContext.Session.GetString(
+                    "CustomerEmail");
+
+            return View();
+        }
+
+
+        // =====================================================
+        // BOOK APPOINTMENT - GET
+        // =====================================================
+
+        [HttpGet]
+        public IActionResult BookAppointment()
+        {
+            int? customerId =
+                HttpContext.Session.GetInt32(
+                    "CustomerId");
+
+            if (customerId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+
+            // ---------------------------------------------
+            // LOAD HAIRSTYLES
+            // ---------------------------------------------
+
+            ViewBag.Hairstyles =
+                GetHairstyles();
+
+
+            // ---------------------------------------------
+            // LOAD ACTIVE BARBERS
+            // ---------------------------------------------
+
+            ViewBag.Barbers =
+                GetActiveBarbers();
+
+
+            return View(
+                new Appointment
+                {
+                    AppointmentDate =
+                        DateTime.Today.AddDays(1),
+
+                    Status = "Pending"
+                });
+        }
+
+
+        // =====================================================
+        // BOOK APPOINTMENT - POST
+        // =====================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult BookAppointment(
+            Appointment appointment)
+        {
+            int? customerId =
+                HttpContext.Session.GetInt32(
+                    "CustomerId");
+
+            if (customerId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+
+            // ---------------------------------------------
+            // DATE VALIDATION
+            // ---------------------------------------------
+
+            if (appointment.AppointmentDate.Date <
+                DateTime.Today)
+            {
+                ModelState.AddModelError(
+                    "AppointmentDate",
+                    "Appointment date cannot be in the past.");
+            }
+
+
+            // ---------------------------------------------
+            // TIME VALIDATION
+            // ---------------------------------------------
+
+            if (appointment.AppointmentTime <=
+                TimeSpan.Zero)
+            {
+                ModelState.AddModelError(
+                    "AppointmentTime",
+                    "Please select a valid appointment time.");
+            }
+
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Hairstyles =
+                    GetHairstyles();
+
+                ViewBag.Barbers =
+                    GetActiveBarbers();
+
+                return View(appointment);
+            }
+
+
+            try
+            {
+                using SqlConnection connection =
+                    new SqlConnection(_connectionString);
+
+                connection.Open();
+
+
+                // ---------------------------------------------
+                // CHECK BARBER
+                // ---------------------------------------------
+
+                string barberCheckQuery = @"
+                    SELECT COUNT(*)
+                    FROM Barbers
+                    WHERE BarberId = @BarberId
+                    AND Status = 'Active'";
+
+                using SqlCommand barberCheckCommand =
+                    new SqlCommand(
+                        barberCheckQuery,
+                        connection);
+
+                barberCheckCommand.Parameters.AddWithValue(
+                    "@BarberId",
+                    appointment.BarberId);
+
+                int barberExists =
+                    Convert.ToInt32(
+                        barberCheckCommand.ExecuteScalar());
+
+                if (barberExists == 0)
+                {
+                    ModelState.AddModelError(
+                        "BarberId",
+                        "Selected barber is not available.");
+
+                    ViewBag.Hairstyles =
+                        GetHairstyles();
+
+                    ViewBag.Barbers =
+                        GetActiveBarbers();
+
+                    return View(appointment);
+                }
+
+
+                // ---------------------------------------------
+                // CHECK SERVICE
+                // ---------------------------------------------
+
+                string styleCheckQuery = @"
+                    SELECT COUNT(*)
+                    FROM Hairstyles
+                    WHERE StyleId = @StyleId";
+
+                using SqlCommand styleCheckCommand =
+                    new SqlCommand(
+                        styleCheckQuery,
+                        connection);
+
+                styleCheckCommand.Parameters.AddWithValue(
+                    "@StyleId",
+                    appointment.StyleId);
+
+                int styleExists =
+                    Convert.ToInt32(
+                        styleCheckCommand.ExecuteScalar());
+
+                if (styleExists == 0)
+                {
+                    ModelState.AddModelError(
+                        "StyleId",
+                        "Selected service is not available.");
+
+                    ViewBag.Hairstyles =
+                        GetHairstyles();
+
+                    ViewBag.Barbers =
+                        GetActiveBarbers();
+
+                    return View(appointment);
+                }
+
+
+                // ---------------------------------------------
+                // CHECK SAME BARBER / DATE / TIME
+                // ---------------------------------------------
+
+                string bookingCheckQuery = @"
+                    SELECT COUNT(*)
+                    FROM Appointments
+                    WHERE BarberId = @BarberId
+                    AND AppointmentDate = @AppointmentDate
+                    AND AppointmentTime = @AppointmentTime
+                    AND Status IN ('Pending', 'Confirmed')";
+
+                using SqlCommand bookingCheckCommand =
+                    new SqlCommand(
+                        bookingCheckQuery,
+                        connection);
+
+                bookingCheckCommand.Parameters.AddWithValue(
+                    "@BarberId",
+                    appointment.BarberId);
+
+                bookingCheckCommand.Parameters.AddWithValue(
+                    "@AppointmentDate",
+                    appointment.AppointmentDate.Date);
+
+                bookingCheckCommand.Parameters.AddWithValue(
+                    "@AppointmentTime",
+                    appointment.AppointmentTime);
+
+                int alreadyBooked =
+                    Convert.ToInt32(
+                        bookingCheckCommand.ExecuteScalar());
+
+                if (alreadyBooked > 0)
+                {
+                    ModelState.AddModelError(
+                        "",
+                        "This barber is already booked at the selected date and time.");
+
+                    ViewBag.Hairstyles =
+                        GetHairstyles();
+
+                    ViewBag.Barbers =
+                        GetActiveBarbers();
+
+                    return View(appointment);
+                }
+
+
+                // ---------------------------------------------
+                // INSERT APPOINTMENT
+                // ---------------------------------------------
+
+                string insertQuery = @"
+                    INSERT INTO Appointments
+                    (
+                        CustomerId,
+                        BarberId,
+                        StyleId,
+                        AppointmentDate,
+                        AppointmentTime,
+                        Status
+                    )
+                    VALUES
+                    (
+                        @CustomerId,
+                        @BarberId,
+                        @StyleId,
+                        @AppointmentDate,
+                        @AppointmentTime,
+                        'Pending'
+                    )";
+
+                using SqlCommand insertCommand =
+                    new SqlCommand(
+                        insertQuery,
+                        connection);
+
+                insertCommand.Parameters.AddWithValue(
+                    "@CustomerId",
+                    customerId.Value);
+
+                insertCommand.Parameters.AddWithValue(
+                    "@BarberId",
+                    appointment.BarberId);
+
+                insertCommand.Parameters.AddWithValue(
+                    "@StyleId",
+                    appointment.StyleId);
+
+                insertCommand.Parameters.AddWithValue(
+                    "@AppointmentDate",
+                    appointment.AppointmentDate.Date);
+
+                insertCommand.Parameters.AddWithValue(
+                    "@AppointmentTime",
+                    appointment.AppointmentTime);
+
+                insertCommand.ExecuteNonQuery();
+
+
+                TempData["Success"] =
+                    "Appointment booked successfully! Waiting for confirmation.";
+
+                return RedirectToAction(
+                    "Dashboard");
+            }
+            catch (SqlException)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Unable to book appointment. Please try again.");
+
+                ViewBag.Hairstyles =
+                    GetHairstyles();
+
+                ViewBag.Barbers =
+                    GetActiveBarbers();
+
+                return View(appointment);
+            }
+        }
+
+
+        // =====================================================
+        // LOAD HAIRSTYLES
+        // =====================================================
+
+        private List<Hairstyle> GetHairstyles()
+        {
+            List<Hairstyle> hairstyles =
+                new List<Hairstyle>();
+
             using SqlConnection connection =
                 new SqlConnection(_connectionString);
 
+            connection.Open();
+
             string query = @"
-                INSERT INTO Users
-                (FullName, Email, Password, Phone, Role, CreatedDate)
-                VALUES
-                (@FullName, @Email, @Password, @Phone, 'Customer', GETDATE())";
+                SELECT
+                    StyleId,
+                    StyleName,
+                    Description,
+                    Price,
+                    Duration,
+                    Image
+                FROM Hairstyles
+                ORDER BY StyleName";
 
             using SqlCommand command =
                 new SqlCommand(query, connection);
 
-            command.Parameters.AddWithValue(
-                "@FullName", customer.FullName);
+            using SqlDataReader reader =
+                command.ExecuteReader();
 
-            command.Parameters.AddWithValue(
-                "@Email", customer.Email);
+            while (reader.Read())
+            {
+                hairstyles.Add(
+                    new Hairstyle
+                    {
+                        StyleId =
+                            Convert.ToInt32(
+                                reader["StyleId"]),
 
-            command.Parameters.AddWithValue(
-                "@Password", customer.Password);
+                        StyleName =
+                            reader["StyleName"].ToString()
+                            ?? "",
 
-            command.Parameters.AddWithValue(
-                "@Phone", customer.Phone);
+                        Description =
+                            reader["Description"] == DBNull.Value
+                                ? ""
+                                : reader["Description"].ToString()
+                                  ?? "",
+
+                        Price =
+                            reader["Price"] == DBNull.Value
+                                ? 0
+                                : Convert.ToDecimal(
+                                    reader["Price"]),
+
+                        Duration =
+                            reader["Duration"] == DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(
+                                    reader["Duration"]),
+
+                        Image =
+                            reader["Image"] == DBNull.Value
+                                ? ""
+                                : reader["Image"].ToString()
+                                  ?? ""
+                    });
+            }
+
+            return hairstyles;
+        }
+
+
+        // =====================================================
+        // LOAD ACTIVE BARBERS
+        // =====================================================
+
+        private List<Barber> GetActiveBarbers()
+        {
+            List<Barber> barbers =
+                new List<Barber>();
+
+            using SqlConnection connection =
+                new SqlConnection(_connectionString);
 
             connection.Open();
-            command.ExecuteNonQuery();
 
-            TempData["Success"] = "Registration successful!";
+            string query = @"
+                SELECT
+                    BarberId,
+                    UserId,
+                    Experience,
+                    Specialization,
+                    Status
+                FROM Barbers
+                WHERE Status = 'Active'
+                ORDER BY Experience DESC";
 
-            return RedirectToAction("Register");
+            using SqlCommand command =
+                new SqlCommand(query, connection);
+
+            using SqlDataReader reader =
+                command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                barbers.Add(
+                    new Barber
+                    {
+                        BarberId =
+                            Convert.ToInt32(
+                                reader["BarberId"]),
+
+                        UserId =
+                            Convert.ToInt32(
+                                reader["UserId"]),
+
+                        Experience =
+                            reader["Experience"] == DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(
+                                    reader["Experience"]),
+
+                        Specialization =
+                            reader["Specialization"] == DBNull.Value
+                                ? ""
+                                : reader["Specialization"].ToString()
+                                  ?? "",
+
+                        Status =
+                            reader["Status"] == DBNull.Value
+                                ? ""
+                                : reader["Status"].ToString()
+                                  ?? ""
+                    });
+            }
+
+            return barbers;
+        }
+
+
+        // =====================================================
+        // CUSTOMER LOGOUT
+        // =====================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+
+            return RedirectToAction("Login");
         }
     }
 }
