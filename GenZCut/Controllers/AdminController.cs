@@ -13,14 +13,29 @@ namespace GenZCut.Controllers
             _configuration = configuration;
         }
 
-        // GET: /Admin/Login
+        // =====================================================
+        // CONNECTION STRING
+        // =====================================================
+
+        private string ConnectionString =>
+            _configuration.GetConnectionString("DefaultConnection")!;
+
+
+        // =====================================================
+        // ADMIN LOGIN - GET
+        // =====================================================
+
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
 
-        // POST: /Admin/Login
+
+        // =====================================================
+        // ADMIN LOGIN - POST
+        // =====================================================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Login(Admin admin)
@@ -30,13 +45,10 @@ namespace GenZCut.Controllers
                 return View(admin);
             }
 
-            string connectionString =
-                _configuration.GetConnectionString("DefaultConnection")!;
-
             try
             {
                 using SqlConnection connection =
-                    new SqlConnection(connectionString);
+                    new SqlConnection(ConnectionString);
 
                 connection.Open();
 
@@ -57,7 +69,8 @@ namespace GenZCut.Controllers
                     "@Password",
                     admin.Password);
 
-                object? result = command.ExecuteScalar();
+                object? result =
+                    command.ExecuteScalar();
 
                 if (result != null)
                 {
@@ -88,7 +101,11 @@ namespace GenZCut.Controllers
             }
         }
 
-        // GET: /Admin/Dashboard
+
+        // =====================================================
+        // ADMIN DASHBOARD
+        // =====================================================
+
         [HttpGet]
         public IActionResult Dashboard()
         {
@@ -103,239 +120,342 @@ namespace GenZCut.Controllers
             ViewBag.AdminEmail =
                 HttpContext.Session.GetString("AdminEmail");
 
-            string connectionString =
-                _configuration.GetConnectionString("DefaultConnection")!;
-
 
             // ==========================================
             // TOTAL CUSTOMERS
             // ==========================================
 
-            int totalCustomers = 0;
-
-            try
-            {
-                using SqlConnection connection =
-                    new SqlConnection(connectionString);
-
-                connection.Open();
-
-                string query =
-                    "SELECT COUNT(*) FROM dbo.Customers";
-
-                using SqlCommand command =
-                    new SqlCommand(query, connection);
-
-                totalCustomers =
-                    Convert.ToInt32(command.ExecuteScalar());
-
-                ViewBag.TotalCustomers =
-                    totalCustomers;
-            }
-            catch (SqlException)
-            {
-                ViewBag.TotalCustomers = 0;
-            }
+            ViewBag.TotalCustomers = GetCount(
+                "SELECT COUNT(*) FROM dbo.Customers");
 
 
             // ==========================================
             // TOTAL APPOINTMENTS
             // ==========================================
 
-            int totalAppointments = 0;
-
-            try
-            {
-                using SqlConnection connection =
-                    new SqlConnection(connectionString);
-
-                connection.Open();
-
-                string query =
-                    "SELECT COUNT(*) FROM dbo.Appointments";
-
-                using SqlCommand command =
-                    new SqlCommand(query, connection);
-
-                totalAppointments =
-                    Convert.ToInt32(command.ExecuteScalar());
-
-                ViewBag.TotalAppointments =
-                    totalAppointments;
-            }
-            catch (SqlException)
-            {
-                ViewBag.TotalAppointments = 0;
-            }
+            ViewBag.TotalAppointments = GetCount(
+                "SELECT COUNT(*) FROM dbo.Appointments");
 
 
             // ==========================================
-            // TOTAL SERVICES / HAIRSTYLES
+            // TOTAL SERVICES
             // ==========================================
 
-            int totalServices = 0;
+            ViewBag.TotalServices = GetCount(
+                "SELECT COUNT(*) FROM dbo.Hairstyles");
 
-            try
-            {
-                using SqlConnection connection =
-                    new SqlConnection(connectionString);
-
-                connection.Open();
-
-                string query =
-                    "SELECT COUNT(*) FROM dbo.Hairstyles";
-
-                using SqlCommand command =
-                    new SqlCommand(query, connection);
-
-                totalServices =
-                    Convert.ToInt32(command.ExecuteScalar());
-
-                ViewBag.TotalServices =
-                    totalServices;
-            }
-            catch (SqlException)
-            {
-                ViewBag.TotalServices = 0;
-            }
 
             // ==========================================
             // PENDING APPOINTMENTS
             // ==========================================
 
-            int pendingAppointments = 0;
+            ViewBag.PendingAppointments = GetCount(
+                @"SELECT COUNT(*)
+                  FROM dbo.Appointments
+                  WHERE Status = 'Pending'");
 
-            try
-            {
-                using SqlConnection connection =
-                    new SqlConnection(connectionString);
 
-                connection.Open();
-
-                string query = @"
-        SELECT COUNT(*)
-        FROM dbo.Appointments
-        WHERE Status = @Status";
-
-                using SqlCommand command =
-                    new SqlCommand(query, connection);
-
-                command.Parameters.AddWithValue(
-                    "@Status",
-                    "Pending");
-
-                pendingAppointments =
-                    Convert.ToInt32(command.ExecuteScalar());
-
-                ViewBag.PendingAppointments =
-                    pendingAppointments;
-            }
-            catch (SqlException)
-            {
-                ViewBag.PendingAppointments = 0;
-            }
             // ==========================================
             // AVAILABLE SERVICES
             // ==========================================
 
-            int availableServices = 0;
-
-            try
-            {
-                using SqlConnection connection =
-                    new SqlConnection(connectionString);
-
-                connection.Open();
-
-                string query =
-                    "SELECT COUNT(*) FROM dbo.Hairstyles";
-
-                using SqlCommand command =
-                    new SqlCommand(query, connection);
-
-                availableServices =
-                    Convert.ToInt32(command.ExecuteScalar());
-
-                ViewBag.AvailableServices =
-                    availableServices;
-            }
-            catch (SqlException)
-            {
-                ViewBag.AvailableServices = 0;
-            }
+            ViewBag.AvailableServices = GetCount(
+                "SELECT COUNT(*) FROM dbo.Hairstyles");
 
 
             // ==========================================
             // ACTIVE BARBERS
             // ==========================================
 
-            int activeBarbers = 0;
-
-            try
-            {
-                using SqlConnection connection =
-                    new SqlConnection(connectionString);
-
-                connection.Open();
-
-                string query =
-                    "SELECT COUNT(*) FROM dbo.Barbers";
-
-                using SqlCommand command =
-                    new SqlCommand(query, connection);
-
-                activeBarbers =
-                    Convert.ToInt32(command.ExecuteScalar());
-
-                ViewBag.ActiveBarbers =
-                    activeBarbers;
-            }
-            catch (SqlException)
-            {
-                ViewBag.ActiveBarbers = 0;
-            }
+            ViewBag.ActiveBarbers = GetCount(
+                @"SELECT COUNT(*)
+                  FROM dbo.Barbers
+                  WHERE Status = 'Active'");
 
 
             // ==========================================
             // COMPLETED BOOKINGS
             // ==========================================
 
-            int completedBookings = 0;
+            ViewBag.CompletedBookings = GetCount(
+                @"SELECT COUNT(*)
+                  FROM dbo.Appointments
+                  WHERE Status = 'Completed'");
+
+
+            return View();
+        }
+
+
+        // =====================================================
+        // HELPER - GET COUNT
+        // =====================================================
+
+        private int GetCount(string query)
+        {
+            try
+            {
+                using SqlConnection connection =
+                    new SqlConnection(ConnectionString);
+
+                connection.Open();
+
+                using SqlCommand command =
+                    new SqlCommand(query, connection);
+
+                return Convert.ToInt32(
+                    command.ExecuteScalar());
+            }
+            catch (SqlException)
+            {
+                return 0;
+            }
+        }
+
+
+        // =====================================================
+        // APPOINTMENT MANAGEMENT - GET
+        // =====================================================
+
+        [HttpGet]
+        public IActionResult Appointments()
+        {
+            int? adminId =
+                HttpContext.Session.GetInt32("AdminId");
+
+            if (adminId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<AdminAppointmentViewModel> appointments =
+                new List<AdminAppointmentViewModel>();
 
             try
             {
                 using SqlConnection connection =
-                    new SqlConnection(connectionString);
+                    new SqlConnection(ConnectionString);
 
                 connection.Open();
 
                 string query = @"
-        SELECT COUNT(*)
-        FROM dbo.Appointments
-        WHERE Status = @Status";
+                    SELECT
+                        a.AppointmentId,
+                        a.AppointmentDate,
+                        a.AppointmentTime,
+                        a.Status,
+
+                        u.FullName AS CustomerName,
+                        u.Phone AS CustomerPhone,
+
+                        b.Specialization,
+                        b.Experience,
+
+                        bu.FullName AS BarberName,
+
+                        h.StyleName,
+                        h.Price,
+                        h.Duration
+
+                    FROM Appointments a
+
+                    INNER JOIN Customers c
+                        ON a.CustomerId = c.CustomerId
+
+                    INNER JOIN Users u
+                        ON c.UserId = u.UserId
+
+                    INNER JOIN Barbers b
+                        ON a.BarberId = b.BarberId
+
+                    INNER JOIN Users bu
+                        ON b.UserId = bu.UserId
+
+                    INNER JOIN Hairstyles h
+                        ON a.StyleId = h.StyleId
+
+                    ORDER BY
+                        a.AppointmentDate DESC,
+                        a.AppointmentTime DESC";
+
+                using SqlCommand command =
+                    new SqlCommand(query, connection);
+
+                using SqlDataReader reader =
+                    command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    appointments.Add(
+                        new AdminAppointmentViewModel
+                        {
+                            AppointmentId =
+                                Convert.ToInt32(
+                                    reader["AppointmentId"]),
+
+                            AppointmentDate =
+                                Convert.ToDateTime(
+                                    reader["AppointmentDate"]),
+
+                            AppointmentTime =
+                                (TimeSpan)
+                                    reader["AppointmentTime"],
+
+                            Status =
+                                reader["Status"] == DBNull.Value
+                                    ? "Pending"
+                                    : reader["Status"].ToString()
+                                      ?? "Pending",
+
+                            CustomerName =
+                                reader["CustomerName"] == DBNull.Value
+                                    ? ""
+                                    : reader["CustomerName"].ToString()
+                                      ?? "",
+
+                            CustomerPhone =
+                                reader["CustomerPhone"] == DBNull.Value
+                                    ? ""
+                                    : reader["CustomerPhone"].ToString()
+                                      ?? "",
+
+                            BarberName =
+                                reader["BarberName"] == DBNull.Value
+                                    ? ""
+                                    : reader["BarberName"].ToString()
+                                      ?? "",
+
+                            Specialization =
+                                reader["Specialization"] == DBNull.Value
+                                    ? ""
+                                    : reader["Specialization"].ToString()
+                                      ?? "",
+
+                            Experience =
+                                reader["Experience"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToInt32(
+                                        reader["Experience"]),
+
+                            StyleName =
+                                reader["StyleName"] == DBNull.Value
+                                    ? ""
+                                    : reader["StyleName"].ToString()
+                                      ?? "",
+
+                            Price =
+                                reader["Price"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        reader["Price"]),
+
+                            Duration =
+                                reader["Duration"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToInt32(
+                                        reader["Duration"])
+                        });
+                }
+            }
+            catch (SqlException)
+            {
+                ViewBag.Error =
+                    "Unable to load appointments.";
+            }
+
+            return View(appointments);
+        }
+
+
+        // =====================================================
+        // UPDATE APPOINTMENT STATUS
+        // =====================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateAppointmentStatus(
+            int appointmentId,
+            string status)
+        {
+            int? adminId =
+                HttpContext.Session.GetInt32("AdminId");
+
+            if (adminId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+
+            // Only allowed statuses
+
+            string[] allowedStatuses =
+            {
+                "Pending",
+                "Confirmed",
+                "Completed",
+                "Cancelled"
+            };
+
+            if (!allowedStatuses.Contains(status))
+            {
+                TempData["Error"] =
+                    "Invalid appointment status.";
+
+                return RedirectToAction("Appointments");
+            }
+
+
+            try
+            {
+                using SqlConnection connection =
+                    new SqlConnection(ConnectionString);
+
+                connection.Open();
+
+                string query = @"
+                    UPDATE Appointments
+                    SET Status = @Status
+                    WHERE AppointmentId = @AppointmentId";
 
                 using SqlCommand command =
                     new SqlCommand(query, connection);
 
                 command.Parameters.AddWithValue(
                     "@Status",
-                    "Completed");
+                    status);
 
-                completedBookings =
-                    Convert.ToInt32(command.ExecuteScalar());
+                command.Parameters.AddWithValue(
+                    "@AppointmentId",
+                    appointmentId);
 
-                ViewBag.CompletedBookings =
-                    completedBookings;
+                int rows =
+                    command.ExecuteNonQuery();
+
+                if (rows > 0)
+                {
+                    TempData["Success"] =
+                        "Appointment status updated successfully.";
+                }
+                else
+                {
+                    TempData["Error"] =
+                        "Appointment not found.";
+                }
             }
             catch (SqlException)
             {
-                ViewBag.CompletedBookings = 0;
+                TempData["Error"] =
+                    "Unable to update appointment status.";
             }
-            return View();
 
+            return RedirectToAction("Appointments");
         }
 
-        // POST: /Admin/Logout
+
+        // =====================================================
+        // ADMIN LOGOUT
+        // =====================================================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Logout()
