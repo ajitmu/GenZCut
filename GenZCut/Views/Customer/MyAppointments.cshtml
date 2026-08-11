@@ -1,0 +1,561 @@
+﻿@using GenZCut.Models
+
+@{
+    ViewData["Title"] = "My Appointments";
+
+    var appointments =
+        ViewBag.Appointments as List<Appointment>
+        ?? new List<Appointment>();
+}
+
+<style>
+    .appointments-page {
+        min-height: calc(100vh - 120px);
+        background: #f7f7f5;
+        padding: 45px 0 70px;
+    }
+
+    .appointments-container {
+        max-width: 1180px;
+        margin: auto;
+        padding: 0 20px;
+    }
+
+    /* HEADER */
+
+    .appointments-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 35px;
+    }
+
+    .header-left small {
+        color: #a27b16;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .header-left h1 {
+        font-size: 38px;
+        font-weight: 800;
+        color: #171717;
+        margin: 6px 0;
+    }
+
+    .header-left p {
+        color: #777;
+        margin: 0;
+        font-size: 15px;
+    }
+
+    .book-btn {
+        display: inline-block;
+        background: #171717;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 13px 21px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+        .book-btn:hover {
+            background: #c9a227;
+            color: #111;
+            transform: translateY(-1px);
+        }
+
+    /* APPOINTMENT CARD */
+
+    .appointment-card {
+        background: white;
+        border: 1px solid #e9e9e9;
+        border-radius: 18px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.045);
+        transition: 0.25s;
+    }
+
+        .appointment-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.08);
+        }
+
+    .appointment-top {
+        padding: 23px 26px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .appointment-number {
+        color: #888;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+        .appointment-number strong {
+            color: #222;
+        }
+
+    .appointment-body {
+        padding: 26px;
+    }
+
+    /* SERVICE */
+
+    .service-section {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .service-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        background: #f4ecd3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 25px;
+        flex-shrink: 0;
+    }
+
+    .service-label {
+        font-size: 11px;
+        color: #999;
+        letter-spacing: 1px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .service-name {
+        font-size: 20px;
+        font-weight: 750;
+        color: #171717;
+        margin-top: 2px;
+    }
+
+    .service-meta {
+        color: #777;
+        font-size: 14px;
+        margin-top: 3px;
+    }
+
+    /* DETAILS */
+
+    .detail-box {
+        padding-left: 24px;
+        border-left: 1px solid #eeeeee;
+    }
+
+    .detail-label {
+        font-size: 11px;
+        color: #999;
+        letter-spacing: 1px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .detail-value {
+        color: #222;
+        font-weight: 650;
+        font-size: 15px;
+    }
+
+    .detail-sub {
+        color: #888;
+        font-size: 13px;
+        margin-top: 3px;
+    }
+
+    /* STATUS */
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 13px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .pending {
+        background: #fff5d9;
+        color: #9a7200;
+    }
+
+    .confirmed {
+        background: #e5f6ec;
+        color: #18733c;
+    }
+
+    .completed {
+        background: #e7f0ff;
+        color: #245bb5;
+    }
+
+    .cancelled {
+        background: #fde8e8;
+        color: #b42323;
+    }
+
+    /* EMPTY STATE */
+
+    .empty-card {
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 20px;
+        padding: 70px 25px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+    }
+
+    .empty-icon {
+        width: 75px;
+        height: 75px;
+        border-radius: 50%;
+        background: #f4ecd3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: auto;
+        font-size: 32px;
+    }
+
+    .empty-card h3 {
+        margin-top: 20px;
+        font-weight: 750;
+    }
+
+    .empty-card p {
+        color: #777;
+        margin-bottom: 20px;
+    }
+
+    /* BACK */
+
+    .back-link {
+        display: inline-block;
+        margin-top: 22px;
+        color: #555;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+        .back-link:hover {
+            color: #a27b16;
+        }
+
+    /* MOBILE */
+
+    @@media (max-width: 768px) {
+
+        .appointments-page {
+            padding-top: 30px;
+        }
+
+        .appointments-header {
+            display: block;
+        }
+
+        .header-left h1 {
+            font-size: 30px;
+        }
+
+        .book-btn {
+            margin-top: 18px;
+        }
+
+        .detail-box {
+            border-left: none;
+            border-top: 1px solid #eeeeee;
+            padding: 15px 0 0;
+            margin-top: 18px;
+        }
+
+        .appointment-body {
+            padding: 20px;
+        }
+
+        .appointment-top {
+            padding: 18px 20px;
+        }
+    }
+</style>
+
+
+<div class="appointments-page">
+
+    <div class="appointments-container">
+
+        <!-- PAGE HEADER -->
+
+        <div class="appointments-header">
+
+            <div class="header-left">
+
+                <small>GenZCut</small>
+
+                <h1>My Appointments</h1>
+
+                <p>
+                    Manage and track your upcoming salon appointments.
+                </p>
+
+            </div>
+
+            <div>
+
+                <a asp-controller="Customer"
+                   asp-action="BookAppointment"
+                   class="book-btn">
+                    + Book Appointment
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- ERROR MESSAGE -->
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger rounded-3 mb-4">
+                @ViewBag.Error
+            </div>
+        }
+
+
+        @if (appointments.Count == 0)
+        {
+            <!-- EMPTY STATE -->
+
+            <div class="empty-card">
+
+                <div class="empty-icon">
+                    📅
+                </div>
+
+                <h3>No Appointments Yet</h3>
+
+                <p>
+                    You haven't booked an appointment with GenZCut yet.
+                </p>
+
+                <a asp-controller="Customer"
+                   asp-action="BookAppointment"
+                   class="book-btn">
+                    Book Your Appointment
+                </a>
+
+            </div>
+        }
+        else
+        {
+            <!-- APPOINTMENT LIST -->
+            foreach (var appointment in appointments)
+            {
+                string status =
+                appointment.Status?.Trim() ?? "Pending";
+
+                string statusClass =
+                status.Equals(
+                "Confirmed",
+                StringComparison.OrdinalIgnoreCase)
+                ? "confirmed"
+                :
+                status.Equals(
+                "Completed",
+                StringComparison.OrdinalIgnoreCase)
+                ? "completed"
+                :
+                status.Equals(
+                "Cancelled",
+                StringComparison.OrdinalIgnoreCase)
+                ? "cancelled"
+                :
+                "pending";
+
+
+                <div class="appointment-card">
+
+                    <!-- APPOINTMENT HEADER -->
+
+                    <div class="appointment-top">
+
+                        <div class="appointment-number">
+
+                            Appointment
+
+                            <strong>
+                                #@appointment.AppointmentId
+                            </strong>
+
+                        </div>
+
+                        <span class="status-badge @statusClass">
+
+                            <span class="status-dot"></span>
+
+                            @status
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- APPOINTMENT DETAILS -->
+
+                    <div class="appointment-body">
+
+                        <div class="row align-items-center">
+
+
+                            <!-- SERVICE -->
+
+                            <div class="col-lg-4 mb-4 mb-lg-0">
+
+                                <div class="service-section">
+
+                                    <div class="service-icon">
+                                        ✂
+                                    </div>
+
+                                    <div>
+
+                                        <div class="service-label">
+                                            Service
+                                        </div>
+
+                                        <div class="service-name">
+                                            @appointment.StyleName
+                                        </div>
+
+                                        <div class="service-meta">
+                                            ₹@appointment.Price.ToString("0.00")
+                                            &nbsp; • &nbsp;
+                                            @appointment.Duration min
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- BARBER -->
+
+                            <div class="col-lg-3 mb-4 mb-lg-0">
+
+                                <div class="detail-box">
+
+                                    <div class="detail-label">
+                                        Barber
+                                    </div>
+
+                                    <div class="detail-value">
+                                        @appointment.BarberName
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                                                appointment.Specialization))
+                                    {
+                                        <div class="detail-sub">
+
+                                            @appointment.Specialization
+                                            &nbsp; • &nbsp;
+                                            @appointment.Experience years
+
+                                        </div>
+                                    }
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- DATE & TIME -->
+
+                            <div class="col-lg-3 mb-4 mb-lg-0">
+
+                                <div class="detail-box">
+
+                                    <div class="detail-label">
+                                        Date & Time
+                                    </div>
+
+                                    <div class="detail-value">
+                                        @appointment.AppointmentDate.ToString("dd MMM yyyy")
+                                    </div>
+
+                                    <div class="detail-sub">
+                                        @appointment.AppointmentTime.ToString(@"hh\:mm")
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- DURATION -->
+
+                            <div class="col-lg-2">
+
+                                <div class="detail-box">
+
+                                    <div class="detail-label">
+                                        Duration
+                                    </div>
+
+                                    <div class="detail-value">
+                                        @appointment.Duration min
+                                    </div>
+
+                                    <div class="detail-sub">
+                                        Service time
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+        }
+
+
+        <!-- BACK TO DASHBOARD -->
+
+        <a asp-controller="Customer"
+           asp-action="Dashboard"
+           class="back-link">
+
+            ← Back to Dashboard
+
+        </a>
+
+    </div>
+
+</div>

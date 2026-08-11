@@ -821,8 +821,155 @@ namespace GenZCut.Controllers
 
             return barbers;
         }
+        // =====================================================
+        // MY APPOINTMENTS
+        // =====================================================
 
+        [HttpGet]
+        public IActionResult MyAppointments()
+        {
+            int? customerId =
+                HttpContext.Session.GetInt32("CustomerId");
 
+            if (customerId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<Appointment> appointments =
+                new List<Appointment>();
+
+            try
+            {
+                using SqlConnection connection =
+                    new SqlConnection(_connectionString);
+
+                connection.Open();
+
+                string query = @"
+            SELECT
+                a.AppointmentId,
+                a.CustomerId,
+                a.BarberId,
+                a.StyleId,
+                a.AppointmentDate,
+                a.AppointmentTime,
+                a.Status,
+
+                h.StyleName,
+                h.Price,
+                h.Duration,
+
+                b.Specialization,
+                b.Experience,
+
+                u.FullName AS BarberName
+
+            FROM Appointments a
+
+            INNER JOIN Hairstyles h
+                ON a.StyleId = h.StyleId
+
+            INNER JOIN Barbers b
+                ON a.BarberId = b.BarberId
+
+            INNER JOIN Users u
+                ON b.UserId = u.UserId
+
+            WHERE a.CustomerId = @CustomerId
+
+            ORDER BY
+                a.AppointmentDate DESC,
+                a.AppointmentTime DESC";
+
+                using SqlCommand command =
+                    new SqlCommand(query, connection);
+
+                command.Parameters.AddWithValue(
+                    "@CustomerId",
+                    customerId.Value);
+
+                using SqlDataReader reader =
+                    command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    appointments.Add(
+                        new Appointment
+                        {
+                            AppointmentId =
+                                Convert.ToInt32(
+                                    reader["AppointmentId"]),
+
+                            CustomerId =
+                                Convert.ToInt32(
+                                    reader["CustomerId"]),
+
+                            BarberId =
+                                Convert.ToInt32(
+                                    reader["BarberId"]),
+
+                            StyleId =
+                                Convert.ToInt32(
+                                    reader["StyleId"]),
+
+                            AppointmentDate =
+                                Convert.ToDateTime(
+                                    reader["AppointmentDate"]),
+
+                            AppointmentTime =
+                                (TimeSpan)
+                                    reader["AppointmentTime"],
+
+                            Status =
+                                reader["Status"].ToString()
+                                ?? "Pending",
+
+                            // Display information
+                            StyleName =
+                                reader["StyleName"].ToString()
+                                ?? "",
+
+                            BarberName =
+                                reader["BarberName"].ToString()
+                                ?? "",
+
+                            Price =
+                                reader["Price"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        reader["Price"]),
+
+                            Duration =
+                                reader["Duration"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToInt32(
+                                        reader["Duration"]),
+
+                            Specialization =
+                                reader["Specialization"] == DBNull.Value
+                                    ? ""
+                                    : reader["Specialization"].ToString()
+                                      ?? "",
+
+                            Experience =
+                                reader["Experience"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToInt32(
+                                        reader["Experience"])
+                        });
+                }
+            }
+            catch (SqlException)
+            {
+                ViewBag.Error =
+                    "Unable to load appointments. Please try again.";
+            }
+
+            ViewBag.Appointments = appointments;
+
+            return View();
+        }
         // =====================================================
         // CUSTOMER LOGOUT
         // =====================================================

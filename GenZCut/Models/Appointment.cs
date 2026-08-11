@@ -22,5 +22,18 @@ namespace GenZCut.Models
         public TimeSpan AppointmentTime { get; set; }
 
         public string Status { get; set; } = "Pending";
+
+        // Display information for My Appointments
+        public string StyleName { get; set; } = "";
+
+        public string BarberName { get; set; } = "";
+
+        public decimal Price { get; set; }
+
+        public int Duration { get; set; }
+
+        public string Specialization { get; set; } = "";
+
+        public int Experience { get; set; }
     }
 }
