@@ -1,0 +1,440 @@
+﻿@model List<GenZCut.Models.AdminAppointmentViewModel>
+
+@{
+    ViewData["Title"] = "Appointment Management";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Appointment Management</h2>
+            <p class="text-muted mb-0">
+                View and manage all customer appointments.
+            </p>
+        </div>
+
+        <a asp-controller="Admin"
+           asp-action="Dashboard"
+           class="btn btn-outline-dark">
+            ← Dashboard
+        </a>
+    </div>
+
+
+    <!-- SUCCESS MESSAGE -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <strong>Success!</strong>
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+
+    <!-- ERROR MESSAGE -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <strong>Error!</strong>
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">
+            @ViewBag.Error
+        </div>
+    }
+
+
+    <!-- APPOINTMENT COUNT -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        All Appointments
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Manage booking status from here.
+                    </p>
+                </div>
+
+                <span class="badge bg-dark fs-6 px-3 py-2">
+                    @(Model?.Count ?? 0) Appointments
+                </span>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- APPOINTMENTS -->
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="row g-4">
+
+            @foreach (var appointment in Model)
+            {
+                <div class="col-12">
+
+                    <div class="card border-0 shadow-sm">
+
+                        <div class="card-body p-4">
+
+                            <!-- TOP SECTION -->
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+
+                                <div>
+                                    <h5 class="fw-bold mb-1">
+                                        Appointment #@appointment.AppointmentId
+                                    </h5>
+
+                                    <small class="text-muted">
+                                        Customer appointment
+                                    </small>
+                                </div>
+
+
+                                <!-- STATUS -->
+                                @if (appointment.Status == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark px-3 py-2">
+                                        Pending
+                                    </span>
+                                }
+                                else if (appointment.Status == "Confirmed")
+                                {
+                                    <span class="badge bg-success px-3 py-2">
+                                        Confirmed
+                                    </span>
+                                }
+                                else if (appointment.Status == "Completed")
+                                {
+                                    <span class="badge bg-primary px-3 py-2">
+                                        Completed
+                                    </span>
+                                }
+                                else if (appointment.Status == "Cancelled")
+                                {
+                                    <span class="badge bg-danger px-3 py-2">
+                                        Cancelled
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary px-3 py-2">
+                                        @appointment.Status
+                                    </span>
+                                }
+
+                            </div>
+
+
+                            <!-- DETAILS -->
+                            <div class="row g-4">
+
+                                <!-- CUSTOMER -->
+                                <div class="col-md-4">
+
+                                    <div class="bg-light rounded p-3 h-100">
+
+                                        <h6 class="fw-bold mb-3">
+                                            Customer
+                                        </h6>
+
+                                        <div class="mb-2">
+                                            <strong>
+                                                @appointment.CustomerName
+                                            </strong>
+                                        </div>
+
+                                        <div class="text-muted">
+                                            @appointment.CustomerPhone
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- SERVICE -->
+                                <div class="col-md-4">
+
+                                    <div class="bg-light rounded p-3 h-100">
+
+                                        <h6 class="fw-bold mb-3">
+                                            Service
+                                        </h6>
+
+                                        <div class="mb-2">
+                                            <strong>
+                                                @appointment.StyleName
+                                            </strong>
+                                        </div>
+
+                                        <div class="text-muted">
+                                            ₹@appointment.Price.ToString("0.00")
+                                            &nbsp; • &nbsp;
+                                            @appointment.Duration min
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- BARBER -->
+                                <div class="col-md-4">
+
+                                    <div class="bg-light rounded p-3 h-100">
+
+                                        <h6 class="fw-bold mb-3">
+                                            Barber
+                                        </h6>
+
+                                        <div class="mb-2">
+                                            <strong>
+                                                @appointment.BarberName
+                                            </strong>
+                                        </div>
+
+                                        <div class="text-muted">
+                                            @appointment.Specialization
+                                            •
+                                            @appointment.Experience years
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- DATE & TIME -->
+                                <div class="col-md-4">
+
+                                    <div class="border rounded p-3">
+
+                                        <small class="text-muted d-block">
+                                            Date
+                                        </small>
+
+                                        <strong>
+                                            @appointment.AppointmentDate.ToString("dd MMM yyyy")
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="col-md-4">
+
+                                    <div class="border rounded p-3">
+
+                                        <small class="text-muted d-block">
+                                            Time
+                                        </small>
+
+                                        <strong>
+                                            @DateTime.Today.Add(
+                                            appointment.AppointmentTime
+                                                                        ).ToString("hh:mm tt")
+                                </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- STATUS -->
+                                <div class="col-md-4">
+
+                                    <div class="border rounded p-3">
+
+                                        <small class="text-muted d-block">
+                                            Current Status
+                                        </small>
+
+                                        <strong>
+                                            @appointment.Status
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- ACTIONS -->
+                            <hr class="my-4" />
+
+                            <div class="d-flex flex-wrap gap-2">
+
+                        @if (appointment.Status == "Pending")
+                                {
+                                    <!-- CONFIRM -->
+                                    <form asp-controller="Admin"
+                                          asp-action="UpdateAppointmentStatus"
+                                          method="post">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="appointmentId"
+                                               value="@appointment.AppointmentId" />
+
+                                        <input type="hidden"
+                                               name="status"
+                                               value="Confirmed" />
+
+                                        <button type="submit"
+                                                class="btn btn-success">
+                                            ✓ Confirm Appointment
+                                        </button>
+
+                                    </form>
+
+
+                                    <!-- CANCEL -->
+                                    <form asp-controller="Admin"
+                                          asp-action="UpdateAppointmentStatus"
+                                          method="post">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="appointmentId"
+                                               value="@appointment.AppointmentId" />
+
+                                        <input type="hidden"
+                                               name="status"
+                                               value="Cancelled" />
+
+                                        <button type="submit"
+                                                class="btn btn-outline-danger">
+                                            ✕ Cancel
+                                        </button>
+
+                                    </form>
+                                }
+
+
+                                @if (appointment.Status == "Confirmed")
+                                {
+                                    <!-- COMPLETE -->
+                                    <form asp-controller="Admin"
+                                          asp-action="UpdateAppointmentStatus"
+                                          method="post">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="appointmentId"
+                                               value="@appointment.AppointmentId" />
+
+                                        <input type="hidden"
+                                               name="status"
+                                               value="Completed" />
+
+                                        <button type="submit"
+                                                class="btn btn-primary">
+                                            ✓ Mark as Completed
+                                        </button>
+
+                                    </form>
+
+
+                                    <!-- CANCEL -->
+                                    <form asp-controller="Admin"
+                                          asp-action="UpdateAppointmentStatus"
+                                          method="post">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="appointmentId"
+                                               value="@appointment.AppointmentId" />
+
+                                        <input type="hidden"
+                                               name="status"
+                                               value="Cancelled" />
+
+                                        <button type="submit"
+                                                class="btn btn-outline-danger">
+                                            ✕ Cancel
+                                        </button>
+
+                                    </form>
+                                }
+
+
+                                @if (appointment.Status == "Completed")
+                                {
+                                    <span class="text-muted">
+                                        Appointment completed.
+                                    </span>
+                                }
+
+
+                                @if (appointment.Status == "Cancelled")
+                                {
+                                    <span class="text-muted">
+                                        Appointment cancelled.
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <!-- NO APPOINTMENTS -->
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body text-center py-5">
+
+                <div style="font-size: 50px;">
+                    📅
+                </div>
+
+                <h5 class="fw-bold mt-3">
+                    No Appointments Found
+                </h5>
+
+                <p class="text-muted mb-0">
+                    There are currently no customer appointments.
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+</div>

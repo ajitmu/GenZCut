@@ -131,7 +131,8 @@ const getElement = obj => {
 const typeCheckConfig = (componentName, config, configTypes) => {
   Object.keys(configTypes).forEach(property => {
     const expectedTypes = configTypes[property];
-    const value = config[property];
+      const
+          ;
     const valueType = value && isElement(value) ? 'element' : toType(value);
 
     if (!new RegExp(expectedTypes).test(valueType)) {

@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -7,40 +9,124 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/GenZCut.styles.css" asp-append-version="true" />
+    <style>
+        .navbar-brand {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            font-size: 22px;
+        }
+
+            .navbar-brand span {
+                color: #c9a227;
+            }
+
+        .nav-link {
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+            .nav-link:hover {
+                color: #c9a227 !important;
+            }
+
+        .btn-nav-gold {
+            background-color: #c9a227;
+            color: #111;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 8px 18px;
+            transition: 0.3s;
+        }
+
+            .btn-nav-gold:hover {
+                background-color: #e5b92e;
+                color: #000;
+            }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">GenZCut</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-dark py-3 sticky-top">
+            <div class="container">
+                <!-- Brand Logo -->
+                <a class="navbar-brand text-white d-flex align-items-center gap-2" asp-controller="Home" asp-action="Index">
+                    <span>GenZ</span>Cut 💈
+                </a>
+
+                <!-- Mobile Toggle Button -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+
+                <!-- Navbar Links -->
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+                        @if (HttpContextAccessor.HttpContext?.Session.GetString("CustomerEmail") == null)
+                        {
+                            <!-- Agar logged out hai toh Home dikhao -->
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="Home" asp-action="Index">Home</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <!-- Agar logged in hai toh Home hata kar Dashboard aur Appointments dikhao -->
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="Customer" asp-action="Dashboard">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="Customer" asp-action="MyAppointments">My Appointments</a>
+                            </li>
+                        }
+                    </ul>
+
+                    <!-- Right Side Auth Buttons -->
+                    <ul class="navbar-nav ms-auto align-items-center gap-2">
+                        @if (HttpContextAccessor.HttpContext?.Session.GetString("CustomerEmail") != null)
+                        {
+                            <!-- Logged In State -->
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-bold" asp-controller="Customer" asp-action="Profile">
+                                    👤 @HttpContextAccessor.HttpContext?.Session.GetString("CustomerName")
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-outline-danger btn-sm px-3 py-2 rounded-pill text-decoration-none" asp-controller="Customer" asp-action="Logout">
+                                    Logout
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <!-- Logged Out State -->
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="Customer" asp-action="Login">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-nav-gold btn-sm px-4 py-2 text-decoration-none" asp-controller="Customer" asp-action="Register">
+                                    Get Started
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    <div class="container-fluid p-0">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="border-top footer text-muted py-2 bg-dark text-center text-light mt-4">
         <div class="container">
-            &copy; 2026 - GenZCut - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <small>&copy; 2026 - GenZCut Salon Management System. All rights reserved.</small>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

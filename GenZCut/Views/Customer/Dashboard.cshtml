@@ -1,0 +1,235 @@
+﻿@model GenZCut.Models.Customer
+
+@{
+    ViewData["Title"] = "Customer Dashboard";
+}
+
+<style>
+    .dashboard-page {
+        min-height: 85vh;
+        background: #f7f7f5;
+        padding: 40px 0 70px;
+    }
+
+    .dashboard-container {
+        max-width: 1100px;
+        margin: auto;
+        padding: 0 20px;
+    }
+
+    .welcome-banner {
+        background: #171717;
+        color: white;
+        padding: 35px 40px;
+        border-radius: 20px;
+        margin-bottom: 35px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+        .welcome-banner h1 {
+            font-size: 30px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .welcome-banner p {
+            color: #aaa;
+            margin: 0;
+            font-size: 15px;
+        }
+
+    .banner-profile-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 10px 20px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: 0.25s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .banner-profile-btn:hover {
+            background: #f4ecd3;
+            color: #111;
+            border-color: #f4ecd3;
+        }
+
+    .action-card {
+        background: white;
+        border: 1px solid #eaeaea;
+        border-radius: 18px;
+        padding: 30px;
+        height: 100%;
+        transition: 0.25s;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        }
+
+    .action-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: #f4ecd3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+
+    .action-card h3 {
+        font-size: 20px;
+        font-weight: 750;
+        color: #171717;
+        margin-bottom: 10px;
+    }
+
+    .action-card p {
+        color: #777;
+        font-size: 14px;
+        margin-bottom: 25px;
+    }
+
+    .card-btn {
+        display: inline-block;
+        background: #171717;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 9px;
+        text-decoration: none;
+        font-weight: 600;
+        text-align: center;
+        transition: 0.2s;
+    }
+
+        .card-btn:hover {
+            background: #c9a227;
+            color: #111;
+        }
+
+    .logout-section {
+        margin-top: 35px;
+    }
+
+    .logout-btn {
+        background: white;
+        color: #b42323;
+        border: 1px solid #fde8e8;
+        padding: 10px 22px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.2s;
+    }
+
+        .logout-btn:hover {
+            background: #fde8e8;
+            color: #991b1b;
+        }
+</style>
+
+<div class="dashboard-page">
+    <div class="dashboard-container">
+
+        <!-- WELCOME BANNER WITH QUICK PROFILE LINK -->
+        <div class="welcome-banner">
+            <div>
+                <h1>Welcome, @Model?.FullName 👋</h1>
+                <p>Manage your appointments and profile details easily.<br /><strong>@Model?.Email</strong></p>
+            </div>
+            <a asp-controller="Customer" asp-action="Profile" class="banner-profile-btn">
+                👤 Manage Profile
+            </a>
+        </div>
+
+        <!-- QUICK ACTIONS GRID -->
+        <div class="row g-4">
+
+            <!-- BOOK APPOINTMENT -->
+            <div class="col-md-6 col-lg-3">
+                <div class="action-card">
+                    <div>
+                        <div class="action-icon">📅</div>
+                        <h3>Book Appointment</h3>
+                        <p>Choose a hairstyle, barber, date and time for your next visit.</p>
+                    </div>
+                    <a asp-controller="Customer"
+                       asp-action="BookAppointment"
+                       class="card-btn">
+                        Book Now
+                    </a>
+                </div>
+            </div>
+
+            <!-- MY APPOINTMENTS -->
+            <div class="col-md-6 col-lg-3">
+                <div class="action-card">
+                    <div>
+                        <div class="action-icon">✂</div>
+                        <h3>My Appointments</h3>
+                        <p>View, track, or check the status of your booked salon appointments.</p>
+                    </div>
+                    <a asp-controller="Customer"
+                       asp-action="MyAppointments"
+                       class="card-btn">
+                        View History
+                    </a>
+                </div>
+            </div>
+
+            <!-- MY PROFILE -->
+            <div class="col-md-6 col-lg-3">
+                <div class="action-card">
+                    <div>
+                        <div class="action-icon">👤</div>
+                        <h3>My Profile</h3>
+                        <p>Update your personal info, phone number, address or password.</p>
+                    </div>
+                    <a asp-controller="Customer"
+                       asp-action="Profile"
+                       class="card-btn">
+                        Edit Profile
+                    </a>
+                </div>
+            </div>
+
+            <!-- EXPLORE SERVICES -->
+            <div class="col-md-6 col-lg-3">
+                <div class="action-card">
+                    <div>
+                        <div class="action-icon">✨</div>
+                        <h3>Explore Services</h3>
+                        <p>Browse the hairstyles and professional salon services available.</p>
+                    </div>
+                    <a asp-controller="Customer" asp-action="ExploreServices" class="btn btn-dark w-100 py-2 rounded-pill fw-bold">
+                        View Services
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+       
+
+    </div>
+</div>

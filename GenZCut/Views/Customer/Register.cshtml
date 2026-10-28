@@ -1,0 +1,314 @@
+﻿@model GenZCut.Models.Customer
+
+@{
+    ViewData["Title"] = "Customer Registration";
+}
+
+<style>
+    body {
+        background: #f5f5f5;
+    }
+
+    .register-wrapper {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 15px;
+    }
+
+    .register-card {
+        width: 100%;
+        max-width: 950px;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+    }
+
+    .register-left {
+        background: linear-gradient(135deg, #111111, #292929);
+        color: white;
+        min-height: 550px;
+        padding: 55px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .brand {
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 15px;
+    }
+
+        .brand span {
+            color: #e63946;
+        }
+
+    .tagline {
+        font-size: 18px;
+        color: #dddddd;
+        line-height: 1.6;
+    }
+
+    .feature {
+        margin-top: 30px;
+    }
+
+    .feature-item {
+        margin-bottom: 18px;
+        font-size: 15px;
+        color: #eeeeee;
+    }
+
+    .register-right {
+        padding: 45px 45px;
+    }
+
+    .form-title {
+        font-size: 30px;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 8px;
+    }
+
+    .form-subtitle {
+        color: #777;
+        margin-bottom: 30px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 7px;
+    }
+
+    .form-control {
+        height: 48px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        padding: 10px 14px;
+    }
+
+        .form-control:focus {
+            border-color: #e63946;
+            box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.12);
+        }
+
+    .register-btn {
+        width: 100%;
+        height: 50px;
+        border: none;
+        border-radius: 10px;
+        background: #e63946;
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        transition: 0.2s;
+    }
+
+        .register-btn:hover {
+            background: #c92f3c;
+            transform: translateY(-1px);
+        }
+
+    .validation-error {
+        color: #dc3545;
+        font-size: 14px;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .success-message {
+        border-radius: 10px;
+    }
+
+    @@media (max-width: 768px) {
+        .register-left {
+            min-height: auto;
+            padding: 35px 30px;
+        }
+
+        .register-right {
+            padding: 35px 25px;
+        }
+    }
+</style>
+
+<div class="register-wrapper">
+
+    <div class="register-card">
+
+        <div class="row g-0">
+
+            <!-- LEFT SIDE -->
+            <div class="col-md-5">
+
+                <div class="register-left">
+
+                    <div class="brand">
+                        GenZ<span>Cut</span>
+                    </div>
+
+                    <h2>Look Good. Feel Great.</h2>
+
+                    <p class="tagline">
+                        Create your account and enjoy a smooth
+                        salon booking experience with GenZCut.
+                    </p>
+
+                    <div class="feature">
+
+                        <div class="feature-item">
+                            ✓ Easy appointment booking
+                        </div>
+
+                        <div class="feature-item">
+                            ✓ Explore salon services
+                        </div>
+
+                        <div class="feature-item">
+                            ✓ Manage your appointments
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- RIGHT SIDE -->
+            <div class="col-md-7">
+
+                <div class="register-right">
+
+                    <div class="form-title">
+                        Create Account
+                    </div>
+
+                    <div class="form-subtitle">
+                        Register as a GenZCut customer
+                    </div>
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success success-message">
+                            @TempData["Success"]
+                        </div>
+                    }
+
+                    <!-- VALIDATION SUMMARY -->
+                    <div asp-validation-summary="ModelOnly"
+                         class="text-danger mb-3">
+                    </div>
+
+                    <form asp-action="Register" method="post">
+
+                        <!-- FULL NAME -->
+                        <div class="mb-3">
+
+                            <label asp-for="FullName"
+                                   class="form-label">
+                                Full Name
+                            </label>
+
+                            <input asp-for="FullName"
+                                   class="form-control"
+                                   placeholder="Enter your full name" />
+
+                            <span asp-validation-for="FullName"
+                                  class="validation-error">
+                            </span>
+
+                        </div>
+
+                        <!-- EMAIL -->
+                        <div class="mb-3">
+
+                            <label asp-for="Email"
+                                   class="form-label">
+                                Email Address
+                            </label>
+
+                            <input asp-for="Email"
+                                   type="email"
+                                   class="form-control"
+                                   placeholder="Enter your email" />
+
+                            <span asp-validation-for="Email"
+                                  class="validation-error">
+                            </span>
+
+                        </div>
+
+                        <!-- PHONE -->
+                        <div class="mb-3">
+
+                            <label asp-for="Phone" class="form-label">
+                                Phone Number
+                            </label>
+
+                            <input asp-for="Phone"
+                                   class="form-control"
+                                   type="tel"
+                                   inputmode="numeric"
+                                   maxlength="10"
+                                   placeholder="Enter 10-digit mobile number" />
+
+                            <span asp-validation-for="Phone"
+                                  class="validation-error">
+                            </span>
+
+                        </div>
+
+                        <!-- PASSWORD -->
+                        <div class="mb-4">
+
+                            <label asp-for="Password"
+                                   class="form-label">
+                                Password
+                            </label>
+
+                            <input asp-for="Password"
+                                   type="password"
+                                   class="form-control"
+                                   placeholder="Create a password" />
+
+                            <span asp-validation-for="Password"
+                                  class="validation-error">
+                            </span>
+
+                        </div>
+
+                        <button type="submit"
+                                class="register-btn">
+                            Create Account
+                        </button>
+                        <div class="text-center mt-3">
+                            <p class="text-muted small">
+                                Already have an account?
+                                <a asp-controller="Customer" asp-action="Login" class="text-decoration-none fw-bold text-dark">Login here</a>
+                            </p>
+                            <a asp-controller="Home" asp-action="Index" class="text-decoration-none small text-secondary">
+                                ← Back to Home
+                            </a>
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,231 @@
+﻿@using GenZCut.Models
+@{
+    ViewData["Title"] = "My Appointments";
+    var appointments = ViewBag.Appointments as List<Appointment> ?? new List<Appointment>();
+}
+
+<style>
+    .appointments-page {
+        min-height: 85vh;
+        background: #f7f7f5;
+        padding: 40px 0 70px;
+    }
+
+    .appointments-container {
+        max-width: 1100px;
+        margin: auto;
+        padding: 0 20px;
+    }
+
+    .page-header {
+        background: #171717;
+        color: white;
+        padding: 30px 40px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+    .appointment-card {
+        background: white;
+        border: 1px solid #eaeaea;
+        border-radius: 18px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.03);
+        transition: 0.25s;
+    }
+
+        .appointment-card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.07);
+        }
+
+    .badge-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .badge-confirmed {
+        background-color: #d1fae5;
+        color: #065f46;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .badge-completed {
+        background-color: #e0e7ff;
+        color: #3730a3;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .badge-cancelled {
+        background-color: #fee2e2;
+        color: #991b1b;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .btn-cancel {
+        background-color: #fff;
+        color: #dc3545;
+        border: 1px solid #dc3545;
+        padding: 6px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 13px;
+        transition: 0.2s;
+    }
+
+        .btn-cancel:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+
+    .back-btn {
+        background: white;
+        color: #171717;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+        .back-btn:hover {
+            background: #f4ecd3;
+            color: #111;
+        }
+</style>
+
+<div class="appointments-page">
+    <div class="appointments-container">
+
+        <!-- ALERT MESSAGES -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger mb-4">
+                @ViewBag.Error
+            </div>
+        }
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div>
+                <h1>My Appointments</h1>
+                <p class="m-0 text-muted">Track and manage your salon bookings</p>
+            </div>
+            <a asp-controller="Customer" asp-action="Dashboard" class="back-btn">
+                ← Back to Dashboard
+            </a>
+        </div>
+
+        <!-- APPOINTMENTS LIST -->
+        @if (!appointments.Any())
+        {
+            <div class="text-center py-5 bg-white rounded-4 border">
+                <h3>No Appointments Found</h3>
+                <p class="text-muted">You haven't booked any salon appointments yet.</p>
+                <a asp-controller="Customer" asp-action="BookAppointment" class="btn btn-dark mt-2">
+                    Book Now
+                </a>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in appointments)
+            {
+                <div class="appointment-card">
+                    <div class="row align-items-center">
+                        <!-- SERVICE & BARBER DETAILS -->
+                        <div class="col-md-5">
+                            <h4 class="fw-bold mb-1">@item.StyleName</h4>
+                            <p class="text-muted mb-1">
+                                Barber: <strong>@item.BarberName</strong> (@item.Specialization)
+                            </p>
+                            <small class="text-secondary">Duration: @item.Duration mins | Price: ₹@item.Price</small>
+                        </div>
+
+                        <!-- DATE & TIME -->
+                        <div class="col-md-3 my-2 my-md-0">
+                            <div class="fw-bold">📅 @item.AppointmentDate.ToString("dd MMM yyyy")</div>
+                            <div class="text-muted">⏰ @DateTime.Today.Add(item.AppointmentTime).ToString("hh:mm tt")</div>
+                        </div>
+
+                        <!-- STATUS BADGE -->
+                        <div class="col-md-2 text-md-center my-2 my-md-0">
+                            @if (item.Status == "Pending")
+                            {
+                                <span class="badge-pending">Pending</span>
+                            }
+                            else if (item.Status == "Confirmed")
+                            {
+                                <span class="badge-confirmed">Confirmed</span>
+                            }
+                            else if (item.Status == "Completed")
+                            {
+                                <span class="badge-completed">Completed</span>
+                            }
+                            else
+                            {
+                                <span class="badge-cancelled">Cancelled</span>
+                            }
+                        </div>
+
+                        <!-- CANCEL ACTION BUTTON -->
+                        <div class="col-md-2 text-md-end">
+                            @if (item.Status == "Pending" || item.Status == "Confirmed")
+                            {
+                                <form asp-controller="Customer" asp-action="CancelAppointment" method="post" class="d-inline" onsubmit="return confirm('Kya aap yeh appointment cancel karna chahte hain?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.AppointmentId" />
+                                    <button type="submit" class="btn-cancel">Cancel</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">-</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+
+    </div>
+</div>

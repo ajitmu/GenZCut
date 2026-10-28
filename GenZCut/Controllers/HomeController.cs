@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using GenZCut.Models;
-using GenZCut.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
@@ -9,24 +8,22 @@ namespace GenZCut.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly Database _database;
+        private readonly string _connectionString;
 
-        public HomeController(
-            ILogger<HomeController> logger,
-            Database database)
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
         {
             _logger = logger;
-            _database = database;
+            _connectionString = configuration.GetConnectionString("DefaultConnection")
+                ?? "Server=localhost;Database=GenZCutDB;Trusted_Connection=True;TrustServerCertificate=True;";
         }
 
         public IActionResult Index()
         {
             try
             {
-                using (SqlConnection connection = _database.GetConnection())
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     connection.Open();
-
                     ViewBag.Message = "Database Connected Successfully!";
                 }
             }

@@ -1,0 +1,218 @@
+﻿@model GenZCut.Models.Admin
+
+@{
+    ViewData["Title"] = "Admin Login";
+}
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #111111, #2b2b2b);
+    }
+
+    .admin-login-page {
+        min-height: 85vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 15px;
+    }
+
+    .login-card {
+        width: 420px;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .logo {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 15px;
+        border-radius: 50%;
+        background: #111111;
+        color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .login-title {
+        text-align: center;
+        margin-bottom: 5px;
+        font-size: 28px;
+        font-weight: 700;
+        color: #111111;
+    }
+
+    .login-subtitle {
+        text-align: center;
+        color: #777777;
+        margin-bottom: 30px;
+        font-size: 14px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333333;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        height: 48px;
+        border-radius: 10px;
+        border: 1px solid #dddddd;
+        padding: 10px 14px;
+        font-size: 15px;
+    }
+
+        .form-control:focus {
+            border-color: #111111;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+        }
+
+    .input-validation-error {
+        border-color: #dc3545 !important;
+    }
+
+    .field-validation-error {
+        display: block;
+        color: #dc3545;
+        font-size: 13px;
+        margin-top: 6px;
+    }
+
+    .validation-summary-errors {
+        background: #fff0f0;
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        border-radius: 10px;
+        padding: 10px 15px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .login-btn {
+        width: 100%;
+        height: 50px;
+        border: none;
+        border-radius: 10px;
+        background: #111111;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: 0.3s;
+    }
+
+        .login-btn:hover {
+            background: #333333;
+            transform: translateY(-1px);
+        }
+
+    .success-message {
+        background: #eaf8ee;
+        border: 1px solid #28a745;
+        color: #218838;
+        padding: 10px 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .admin-badge {
+        text-align: center;
+        margin-top: 22px;
+        font-size: 13px;
+        color: #888888;
+    }
+</style>
+
+<div class="admin-login-page">
+
+    <div class="login-card">
+
+        <div class="logo">
+            GZ
+        </div>
+
+        <h2 class="login-title">Admin Login</h2>
+
+        <p class="login-subtitle">
+            Welcome back to GenZCut
+        </p>
+
+        @if (ViewBag.Message != null)
+        {
+            <div class="success-message">
+                @ViewBag.Message
+            </div>
+        }
+
+        <div asp-validation-summary="ModelOnly"
+             class="validation-summary-errors">
+        </div>
+
+        <form asp-action="Login" method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+
+                <label asp-for="Email" class="form-label">
+                    Email Address
+                </label>
+
+                <input asp-for="Email"
+                       class="form-control"
+                       placeholder="Enter your email"
+                       autocomplete="email" />
+
+                <span asp-validation-for="Email"
+                      class="field-validation-error">
+                </span>
+
+            </div>
+
+            <div class="mb-3">
+
+                <label asp-for="Password" class="form-label">
+                    Password
+                </label>
+
+                <input asp-for="Password"
+                       type="password"
+                       class="form-control"
+                       placeholder="Enter your password"
+                       autocomplete="current-password" />
+
+                <span asp-validation-for="Password"
+                      class="field-validation-error">
+                </span>
+
+            </div>
+
+            <button type="submit" class="login-btn">
+                Login to Dashboard
+            </button>
+
+        </form>
+
+        <div class="admin-badge">
+            🔒 Secure Admin Access
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
