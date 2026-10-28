@@ -1,0 +1,175 @@
+﻿@model GenZCut.Models.Customer
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<style>
+    .profile-page {
+        min-height: 85vh;
+        background: #f7f7f5;
+        padding: 40px 0 70px;
+    }
+
+    .profile-container {
+        max-width: 800px;
+        margin: auto;
+        padding: 0 20px;
+    }
+
+    .profile-card {
+        background: white;
+        border: 1px solid #eaeaea;
+        border-radius: 20px;
+        padding: 35px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+
+    .page-header {
+        background: #171717;
+        color: white;
+        padding: 25px 35px;
+        border-radius: 18px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .page-header h2 {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+    .btn-save {
+        background: #171717;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        border: none;
+        transition: 0.2s;
+    }
+
+        .btn-save:hover {
+            background: #333;
+            color: white;
+        }
+
+    .back-btn {
+        background: white;
+        color: #171717;
+        padding: 8px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: 0.2s;
+    }
+
+        .back-btn:hover {
+            background: #f4ecd3;
+            color: #111;
+        }
+</style>
+
+<div class="profile-page">
+    <div class="profile-container">
+
+        <!-- HEADER -->
+        <div class="page-header">
+            <div>
+                <h2>My Profile</h2>
+                <small class="text-muted">View and update your personal information</small>
+            </div>
+            <a asp-controller="Customer" asp-action="Dashboard" class="back-btn">
+                ← Dashboard
+            </a>
+        </div>
+
+        <!-- ALERTS -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- FORM -->
+        <div class="profile-card">
+            <form asp-controller="Customer" asp-action="Profile" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row g-3">
+                    <!-- FULL NAME -->
+                    <div class="col-md-6">
+                        <label asp-for="FullName" class="form-label fw-semibold">Full Name</label>
+                        <input asp-for="FullName" class="form-control form-control-lg" placeholder="Enter your full name" required />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <!-- EMAIL (READONLY) -->
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label fw-semibold">Email Address</label>
+                        <input asp-for="Email" class="form-control form-control-lg bg-light" readonly />
+                        <small class="text-muted">Email cannot be changed.</small>
+                    </div>
+
+                    <!-- PHONE -->
+                    <div class="col-md-6">
+                        <label asp-for="Phone" class="form-label fw-semibold">Phone Number</label>
+                        <input asp-for="Phone" class="form-control form-control-lg" placeholder="Enter phone number" required />
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+
+                    <!-- GENDER -->
+                    <div class="col-md-6">
+                        <label asp-for="Gender" class="form-label fw-semibold">Gender</label>
+                        <select asp-for="Gender" class="form-select form-select-lg">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- ADDRESS -->
+                    <div class="col-12">
+                        <label asp-for="Address" class="form-label fw-semibold">Address</label>
+                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter your full address"></textarea>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <!-- NEW PASSWORD (OPTIONAL) -->
+                    <div class="col-12">
+                        <h5 class="fw-bold mb-1">Change Password</h5>
+                        <p class="text-muted small">Leave blank if you don't want to change your password.</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label fw-semibold">New Password</label>
+                        <input asp-for="Password" type="password" class="form-control form-control-lg" placeholder="Enter new password" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-end">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>

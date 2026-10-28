@@ -5,10 +5,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Register Database service
+// 1. Register HttpContextAccessor (Navbar Session Access ke liye Required)
+builder.Services.AddHttpContextAccessor();
+
+// 2. Register Database service
 builder.Services.AddScoped<Database>();
 
-// Add Session
+// 3. Add Session Support
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -30,7 +34,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Session
+// Enable Session Middleware
 app.UseSession();
 
 app.UseAuthorization();

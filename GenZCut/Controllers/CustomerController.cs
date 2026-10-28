@@ -1,4 +1,5 @@
 ﻿using GenZCut.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
@@ -15,7 +16,11 @@ namespace GenZCut.Controllers
                 ?? throw new InvalidOperationException(
                     "Connection string not found.");
         }
-
+        [HttpGet]
+        public IActionResult ExploreServices()
+        {
+            return View();
+        }
 
         // =====================================================
         // CUSTOMER REGISTRATION - GET
@@ -29,7 +34,7 @@ namespace GenZCut.Controllers
 
 
         // =====================================================
-        // CUSTOMER REGISTRATION - POST
+        // CUSTOMER REGISTRATION - POST (WITH PASSWORD HASHING)
         // =====================================================
 
         [HttpPost]
@@ -109,6 +114,14 @@ namespace GenZCut.Controllers
 
 
                 // ---------------------------------------------
+                // HASH PASSWORD
+                // ---------------------------------------------
+
+                var passwordHasher = new PasswordHasher<Customer>();
+                string hashedPassword = passwordHasher.HashPassword(customer, customer.Password);
+
+
+                // ---------------------------------------------
                 // INSERT USER AND GET UserId
                 // ---------------------------------------------
 
@@ -146,7 +159,7 @@ namespace GenZCut.Controllers
 
                 userCommand.Parameters.AddWithValue(
                     "@Password",
-                    customer.Password);
+                    hashedPassword);
 
                 userCommand.Parameters.AddWithValue(
                     "@Phone",
@@ -225,7 +238,7 @@ namespace GenZCut.Controllers
 
 
         // =====================================================
-        // CUSTOMER LOGIN - POST
+        // CUSTOMER LOGIN - POST (WITH PASSWORD VERIFICATION)
         // =====================================================
 
         [HttpPost]
@@ -263,12 +276,12 @@ namespace GenZCut.Controllers
                         c.CustomerId,
                         u.UserId,
                         u.FullName,
-                        u.Email
+                        u.Email,
+                        u.Password
                     FROM Users u
                     INNER JOIN Customers c
                         ON u.UserId = c.UserId
                     WHERE u.Email = @Email
-                    AND u.Password = @Password
                     AND u.Role = 'Customer'";
 
                 using SqlCommand command =
@@ -278,52 +291,56 @@ namespace GenZCut.Controllers
                     "@Email",
                     email);
 
-                command.Parameters.AddWithValue(
-                    "@Password",
-                    password);
-
                 using SqlDataReader reader =
                     command.ExecuteReader();
 
                 if (reader.Read())
                 {
-                    int customerId =
-                        Convert.ToInt32(
-                            reader["CustomerId"]);
+                    string storedHashedPassword = reader["Password"].ToString() ?? "";
 
-                    int userId =
-                        Convert.ToInt32(
-                            reader["UserId"]);
+                    var passwordHasher = new PasswordHasher<Customer>();
+                    var verificationResult = passwordHasher.VerifyHashedPassword(new Customer(), storedHashedPassword, password);
 
-                    string fullName =
-                        reader["FullName"].ToString() ?? "";
+                    if (verificationResult == PasswordVerificationResult.Success)
+                    {
+                        int customerId =
+                            Convert.ToInt32(
+                                reader["CustomerId"]);
 
-                    string customerEmail =
-                        reader["Email"].ToString() ?? "";
+                        int userId =
+                            Convert.ToInt32(
+                                reader["UserId"]);
+
+                        string fullName =
+                            reader["FullName"].ToString() ?? "";
+
+                        string customerEmail =
+                            reader["Email"].ToString() ?? "";
 
 
-                    // -----------------------------------------
-                    // CUSTOMER SESSION
-                    // -----------------------------------------
+                        // -----------------------------------------
+                        // CUSTOMER SESSION
+                        // -----------------------------------------
 
-                    HttpContext.Session.SetInt32(
-                        "CustomerId",
-                        customerId);
+                        HttpContext.Session.SetInt32(
+                            "CustomerId",
+                            customerId);
 
-                    HttpContext.Session.SetInt32(
-                        "UserId",
-                        userId);
+                        HttpContext.Session.SetInt32(
+                            "UserId",
+                            userId);
 
-                    HttpContext.Session.SetString(
-                        "CustomerName",
-                        fullName);
+                        HttpContext.Session.SetString(
+                            "CustomerName",
+                            fullName);
 
-                    HttpContext.Session.SetString(
-                        "CustomerEmail",
-                        customerEmail);
+                        HttpContext.Session.SetString(
+                            "CustomerEmail",
+                            customerEmail);
 
-                    return RedirectToAction(
-                        "Dashboard");
+                        return RedirectToAction(
+                            "Dashboard");
+                    }
                 }
 
                 ModelState.AddModelError(
@@ -359,15 +376,198 @@ namespace GenZCut.Controllers
                 return RedirectToAction("Login");
             }
 
-            ViewBag.CustomerName =
-                HttpContext.Session.GetString(
-                    "CustomerName");
+            Customer customer = new Customer();
 
-            ViewBag.CustomerEmail =
-                HttpContext.Session.GetString(
-                    "CustomerEmail");
+            try
+            {
+                using SqlConnection connection =
+                    new SqlConnection(_connectionString);
 
-            return View();
+                connection.Open();
+
+                string query = @"
+                    SELECT 
+                        u.FullName, 
+                        u.Email, 
+                        u.Phone, 
+                        c.Address, 
+                        c.Gender 
+                    FROM Customers c
+                    INNER JOIN Users u ON c.UserId = u.UserId
+                    WHERE c.CustomerId = @CustomerId";
+
+                using SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@CustomerId", customerId.Value);
+
+                using SqlDataReader reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    customer.FullName = reader["FullName"].ToString() ?? "";
+                    customer.Email = reader["Email"].ToString() ?? "";
+                    customer.Phone = reader["Phone"] == DBNull.Value ? "" : reader["Phone"].ToString() ?? "";
+                    customer.Address = reader["Address"] == DBNull.Value ? "" : reader["Address"].ToString() ?? "";
+                    customer.Gender = reader["Gender"] == DBNull.Value ? "" : reader["Gender"].ToString() ?? "";
+                }
+            }
+            catch (SqlException)
+            {
+                customer.FullName = HttpContext.Session.GetString("CustomerName") ?? "Customer";
+                customer.Email = HttpContext.Session.GetString("CustomerEmail") ?? "";
+            }
+
+            return View(customer);
+        }
+
+
+        // =====================================================
+        // CUSTOMER PROFILE - GET
+        // =====================================================
+
+        [HttpGet]
+        public IActionResult Profile()
+        {
+            int? customerId = HttpContext.Session.GetInt32("CustomerId");
+
+            if (customerId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            Customer customer = new Customer();
+
+            try
+            {
+                using SqlConnection connection = new SqlConnection(_connectionString);
+                connection.Open();
+
+                string query = @"
+                    SELECT 
+                        u.FullName, 
+                        u.Email, 
+                        u.Phone, 
+                        c.Address, 
+                        c.Gender 
+                    FROM Customers c
+                    INNER JOIN Users u ON c.UserId = u.UserId
+                    WHERE c.CustomerId = @CustomerId";
+
+                using SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@CustomerId", customerId.Value);
+
+                using SqlDataReader reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    customer.FullName = reader["FullName"].ToString() ?? "";
+                    customer.Email = reader["Email"].ToString() ?? "";
+                    customer.Phone = reader["Phone"] == DBNull.Value ? "" : reader["Phone"].ToString() ?? "";
+                    customer.Address = reader["Address"] == DBNull.Value ? "" : reader["Address"].ToString() ?? "";
+                    customer.Gender = reader["Gender"] == DBNull.Value ? "" : reader["Gender"].ToString() ?? "";
+                }
+            }
+            catch (SqlException)
+            {
+                TempData["Error"] = "Unable to load profile details.";
+            }
+
+            return View(customer);
+        }
+
+        // =====================================================
+        // CUSTOMER PROFILE - POST (UPDATE DETAILS)
+        // =====================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Profile(Customer customer)
+        {
+            int? customerId = HttpContext.Session.GetInt32("CustomerId");
+            int? userId = HttpContext.Session.GetInt32("UserId");
+
+            if (customerId == null || userId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            // Password field ko profile update ke liye ModelState se hata dete hain taaki blank hone par error na aaye
+            ModelState.Remove("Password");
+
+            if (string.IsNullOrWhiteSpace(customer.FullName))
+            {
+                ModelState.AddModelError("FullName", "Full name is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(customer.Phone))
+            {
+                ModelState.AddModelError("Phone", "Phone number is required.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(customer);
+            }
+
+            try
+            {
+                using SqlConnection connection = new SqlConnection(_connectionString);
+                connection.Open();
+
+                // 1. UPDATE USERS TABLE
+                string userUpdateQuery = @"
+                    UPDATE Users 
+                    SET FullName = @FullName, 
+                        Phone = @Phone";
+
+                // Sirf tabhi password update karein jab user ne naya password dala ho
+                bool updatePassword = !string.IsNullOrWhiteSpace(customer.Password);
+                if (updatePassword)
+                {
+                    userUpdateQuery += ", Password = @Password";
+                }
+
+                userUpdateQuery += " WHERE UserId = @UserId";
+
+                using (SqlCommand userCmd = new SqlCommand(userUpdateQuery, connection))
+                {
+                    userCmd.Parameters.AddWithValue("@FullName", customer.FullName);
+                    userCmd.Parameters.AddWithValue("@Phone", customer.Phone);
+                    userCmd.Parameters.AddWithValue("@UserId", userId.Value);
+
+                    if (updatePassword)
+                    {
+                        var passwordHasher = new PasswordHasher<Customer>();
+                        string hashedPassword = passwordHasher.HashPassword(customer, customer.Password);
+                        userCmd.Parameters.AddWithValue("@Password", hashedPassword);
+                    }
+
+                    userCmd.ExecuteNonQuery();
+                }
+
+                // 2. UPDATE CUSTOMERS TABLE
+                string customerUpdateQuery = @"
+                    UPDATE Customers 
+                    SET Address = @Address, 
+                        Gender = @Gender 
+                    WHERE CustomerId = @CustomerId";
+
+                using (SqlCommand custCmd = new SqlCommand(customerUpdateQuery, connection))
+                {
+                    custCmd.Parameters.AddWithValue("@Address", string.IsNullOrWhiteSpace(customer.Address) ? DBNull.Value : customer.Address);
+                    custCmd.Parameters.AddWithValue("@Gender", string.IsNullOrWhiteSpace(customer.Gender) ? DBNull.Value : customer.Gender);
+                    custCmd.Parameters.AddWithValue("@CustomerId", customerId.Value);
+
+                    custCmd.ExecuteNonQuery();
+                }
+
+                HttpContext.Session.SetString("CustomerName", customer.FullName);
+
+                TempData["Success"] = "Profile updated successfully!";
+                return RedirectToAction("Profile");
+            }
+            catch (SqlException)
+            {
+                ModelState.AddModelError("", "Unable to update profile. Please try again.");
+                return View(customer);
+            }
         }
 
 
@@ -821,6 +1021,8 @@ namespace GenZCut.Controllers
 
             return barbers;
         }
+
+
         // =====================================================
         // MY APPOINTMENTS
         // =====================================================
@@ -925,7 +1127,6 @@ namespace GenZCut.Controllers
                                 reader["Status"].ToString()
                                 ?? "Pending",
 
-                            // Display information
                             StyleName =
                                 reader["StyleName"].ToString()
                                 ?? "",
@@ -970,17 +1171,71 @@ namespace GenZCut.Controllers
 
             return View();
         }
+
+
         // =====================================================
-        // CUSTOMER LOGOUT
+        // CANCEL APPOINTMENT
         // =====================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public IActionResult CancelAppointment(int id)
+        {
+            int? customerId = HttpContext.Session.GetInt32("CustomerId");
+
+            if (customerId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using SqlConnection connection = new SqlConnection(_connectionString);
+                connection.Open();
+
+                string updateQuery = @"
+                    UPDATE Appointments
+                    SET Status = 'Cancelled'
+                    WHERE AppointmentId = @AppointmentId 
+                    AND CustomerId = @CustomerId 
+                    AND Status = 'Pending'";
+
+                using SqlCommand command = new SqlCommand(updateQuery, connection);
+                command.Parameters.AddWithValue("@AppointmentId", id);
+                command.Parameters.AddWithValue("@CustomerId", customerId.Value);
+
+                int rowsAffected = command.ExecuteNonQuery();
+
+                if (rowsAffected > 0)
+                {
+                    TempData["Success"] = "Appointment cancelled successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to cancel appointment.";
+                }
+            }
+            catch (SqlException)
+            {
+                TempData["Error"] = "Database error occurred while cancelling appointment.";
+            }
+
+            return RedirectToAction("MyAppointments");
+        }
+
+
+        // =====================================================
+        // CUSTOMER LOGOUT
+        // =====================================================
+
+        [HttpGet] // Yeh ensure karega ki GET request allow ho
         public IActionResult Logout()
         {
+            // Session clear kar rahe hain
             HttpContext.Session.Clear();
 
-            return RedirectToAction("Login");
+            // Logout ke baad seedha Home page par bhej do
+            return RedirectToAction("Index", "Home");
         }
     }
-}
+}   

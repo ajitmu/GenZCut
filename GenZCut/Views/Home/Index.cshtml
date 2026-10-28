@@ -1,9 +1,221 @@
-﻿<h2>@ViewBag.Message</h2>
-@{
-    ViewData["Title"] = "Home Page";
+﻿@{
+    ViewData["Title"] = "GenZCut - Premium Salon & Barber Management";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #121212 0%, #1f1f1f 100%);
+        color: #ffffff;
+        padding: 100px 0 120px;
+        border-radius: 0 0 40px 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-title {
+        font-size: 56px;
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -1.5px;
+    }
+
+        .hero-title span {
+            color: #c9a227;
+        }
+
+    .hero-subtitle {
+        font-size: 18px;
+        color: #b5b5b5;
+        margin-top: 20px;
+        margin-bottom: 40px;
+        max-width: 620px;
+    }
+
+    .btn-gold {
+        background: #c9a227;
+        color: #111;
+        font-weight: 700;
+        padding: 14px 32px;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: 0.3s;
+        box-shadow: 0 5px 20px rgba(201, 162, 39, 0.3);
+    }
+
+        .btn-gold:hover {
+            background: #e5b92e;
+            color: #000;
+            transform: translateY(-2px);
+        }
+
+    .style-card {
+        transition: 0.3s;
+        border: 1px solid #eaeaea;
+    }
+
+        .style-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+            border-color: #c9a227;
+        }
+
+    .portal-card {
+        background: white;
+        border: 1px solid #eaeaea;
+        border-radius: 20px;
+        padding: 35px 25px;
+        height: 100%;
+        transition: 0.3s;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        text-align: center;
+    }
+
+        .portal-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            border-color: #c9a227;
+        }
+
+    .portal-icon {
+        width: 70px;
+        height: 70px;
+        background: #f4ecd3;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        margin: 0 auto 20px;
+    }
+
+    .section-padding {
+        padding: 90px 0;
+        background: #f7f7f5;
+    }
+</style>
+
+<!-- 1. HERO SECTION -->
+<div class="hero-section">
+    <div class="container text-center text-lg-start">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <span class="badge bg-dark text-warning border border-warning px-3 py-2 rounded-pill mb-3 fw-bold">
+                    ✨ NEXT-GEN SALON MANAGEMENT SYSTEM
+                </span>
+                <h1 class="hero-title">
+                    Precision Cuts.<br />
+                    <span>Ultimate Style.</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Welcome to GenZCut. Experience seamless online salon appointments, expert grooming services, and professional barber management all in one place.
+                </p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                    <a asp-controller="Customer" asp-action="Register" class="btn-gold">
+                        Get Started - Book Now
+                    </a>
+                    <a asp-controller="Customer" asp-action="Login" class="btn btn-outline-light px-4 py-3 rounded-pill fw-bold">
+                        Customer Login
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block text-center">
+                <div style="font-size: 150px; line-height: 1; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.6));">
+                    ✂️👑
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. TRENDING HAIRCUTS SHOWCASE (NEW IMAGES SECTION) -->
+<div class="py-5 bg-white">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="text-warning fw-bold text-uppercase tracking-wider small">Trending Styles</span>
+            <h2 class="fw-bold fs-2 text-dark mt-1">Popular Haircuts & Grooming</h2>
+            <p class="text-muted">Explore the latest trendy looks crafted by our expert professional barbers.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Style 1 -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 style-card">
+                    <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=600&q=80" class="card-img-top object-fit-cover" style="height: 240px;" alt="Skin Fade">
+                    <div class="card-body p-4">
+                        <h4 class="h5 fw-bold text-dark">Skin Fade & Pompadour</h4>
+                        <p class="text-muted small mb-3">A sharp, clean fade on the sides paired with a stylish textured top for a bold modern impression.</p>
+                        <span class="badge bg-light text-dark border">⏱ 30 mins · ✂️ Modern Cut</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 2 -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 style-card">
+                    <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80" class="card-img-top object-fit-cover" style="height: 240px;" alt="Textured Crop">
+                    <div class="card-body p-4">
+                        <h4 class="h5 fw-bold text-dark">Textured French Crop</h4>
+                        <p class="text-muted small mb-3">Low-maintenance yet high-impact choppy layers designed for effortless daily casual styling.</p>
+                        <span class="badge bg-light text-dark border">⏱ 25 mins · ✂️ Casual Style</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 3 -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 style-card">
+                    <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=600&q=80" class="card-img-top object-fit-cover" style="height: 240px;" alt="Beard Trim">
+                    <div class="card-body p-4">
+                        <h4 class="h5 fw-bold text-dark">Executive Beard Styling</h4>
+                        <p class="text-muted small mb-3">Precision line-ups, professional beard trimming, and a soothing hot towel finish for gentlemen.</p>
+                        <span class="badge bg-light text-dark border">⏱ 20 mins · ✂️ Grooming</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. ACCESS PORTALS / ROLE ACCESS SECTION (MOVED TO BOTTOM) -->
+<div class="section-padding">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold fs-2 text-dark">Access Portals</h2>
+            <p class="text-muted">Select your portal to log in or manage your respective dashboard.</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <!-- Customer Portal -->
+            <div class="col-md-4">
+                <div class="portal-card">
+                    <div class="portal-icon">👤</div>
+                    <h3 class="h5 fw-bold text-dark">Customer Portal</h3>
+                    <p class="text-muted small mb-4">Book appointments, explore trendy hairstyles, and manage your profile.</p>
+                    <a asp-controller="Customer" asp-action="Login" class="btn btn-dark w-100 py-2 rounded-pill fw-bold">
+                        Customer Login
+                    </a>
+                </div>
+            </div>
+
+            <!-- Barber Portal -->
+            <div class="col-md-4">
+                <div class="portal-card">
+                    <div class="portal-icon">💈</div>
+                    <h3 class="h5 fw-bold text-dark">Barber Portal</h3>
+                    <p class="text-muted small mb-4">View assigned appointments, manage daily schedules, and client notes.</p>
+                    <span class="badge bg-secondary text-light py-2 px-3 rounded-pill">Managed by Team Member</span>
+                </div>
+            </div>
+
+            <!-- Admin Portal -->
+            <div class="col-md-4">
+                <div class="portal-card">
+                    <div class="portal-icon">⚙️</div>
+                    <h3 class="h5 fw-bold text-dark">Admin Portal</h3>
+                    <p class="text-muted small mb-4">Oversee total salon operations, barbers, services, and system analytics.</p>
+                    <span class="badge bg-secondary text-light py-2 px-3 rounded-pill">Managed by Team Member</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

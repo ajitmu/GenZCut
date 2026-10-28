@@ -1,0 +1,185 @@
+﻿@{
+    ViewData["Title"] = "Explore Services - GenZCut";
+}
+
+<div class="container py-5">
+    <!-- Header Banner -->
+    <div class="text-center mb-5">
+        <span class="badge bg-dark text-warning border border-warning px-3 py-2 rounded-pill mb-3 fw-bold">
+            ✂️ OUR PROFESSIONAL MENU
+        </span>
+        <h1 class="fw-bold display-5 text-dark">Explore Salon Services & Pricing</h1>
+        <p class="text-muted lead mx-auto" style="max-width: 600px;">
+            Choose from precision cuts, luxury beard grooming, and refreshing hair treatments tailored for the modern gentleman.
+        </p>
+    </div>
+
+    <!-- Category Filter Tabs -->
+    <div class="d-flex justify-content-center flex-wrap gap-2 mb-5" id="filter-container">
+        <button type="button" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm filter-btn active-tab" data-filter="all">All Services</button>
+        <button type="button" class="btn btn-outline-dark rounded-pill px-4 fw-bold filter-btn" data-filter="hair">Hair Styling</button>
+        <button type="button" class="btn btn-outline-dark rounded-pill px-4 fw-bold filter-btn" data-filter="beard">Beard Grooming</button>
+        <button type="button" class="btn btn-outline-dark rounded-pill px-4 fw-bold filter-btn" data-filter="combo">Combo Packages</button>
+    </div>
+
+    <!-- Services Grid -->
+    <div class="row g-4" id="services-grid">
+        <!-- Service 1 (Hair) -->
+        <div class="col-md-4 col-sm-6 service-item" data-category="hair">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 style-card">
+                <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&auto=format&fit=crop&q=80" class="card-img-top object-fit-cover" style="height: 220px;" alt="Skin Fade">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-warning text-dark fw-bold px-2 py-1">MOST POPULAR</span>
+                        <h4 class="fw-bold text-success mb-0">₹350</h4>
+                    </div>
+                    <h3 class="h5 fw-bold text-dark">Signature Skin Fade</h3>
+                    <p class="text-muted small mb-4">Precision fade on the sides paired with custom textured styling on top for a clean, sharp look.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                        <span class="text-muted small">⏱ 30 Mins</span>
+                        <a asp-controller="Customer" asp-action="Dashboard" class="btn btn-dark btn-sm rounded-pill px-3 fw-bold text-decoration-none">Book Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service 2 (Hair) -->
+        <div class="col-md-4 col-sm-6 service-item" data-category="hair">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 style-card">
+                <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80" class="card-img-top object-fit-cover" style="height: 220px;" alt="Textured Crop">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-light text-dark border px-2 py-1">TRENDING</span>
+                        <h4 class="fw-bold text-success mb-0">₹300</h4>
+                    </div>
+                    <h3 class="h5 fw-bold text-dark">Textured French Crop</h3>
+                    <p class="text-muted small mb-4">Low-maintenance yet high-impact choppy layers designed for effortless daily casual styling.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                        <span class="text-muted small">⏱ 25 Mins</span>
+                        <a asp-controller="Customer" asp-action="Dashboard" class="btn btn-dark btn-sm rounded-pill px-3 fw-bold text-decoration-none">Book Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service 3 (Beard) -->
+        <div class="col-md-4 col-sm-6 service-item" data-category="beard">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 style-card">
+                <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&auto=format&fit=crop&q=80" class="card-img-top object-fit-cover" style="height: 220px;" alt="Beard Trim">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-light text-dark border px-2 py-1">GROOMING</span>
+                        <h4 class="fw-bold text-success mb-0">₹200</h4>
+                    </div>
+                    <h3 class="h5 fw-bold text-dark">Executive Beard Styling</h3>
+                    <p class="text-muted small mb-4">Precision line-ups, professional beard trimming, and a soothing hot towel finish for gentlemen.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                        <span class="text-muted small">⏱ 20 Mins</span>
+                        <a asp-controller="Customer" asp-action="Dashboard" class="btn btn-dark btn-sm rounded-pill px-3 fw-bold text-decoration-none">Book Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service 4 (Hair) -->
+        <div class="col-md-4 col-sm-6 service-item" data-category="hair">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 style-card">
+                <img src="https://images.unsplash.com/photo-1560869713-7d0a29430803?w=600&auto=format&fit=crop&q=80" class="card-img-top object-fit-cover" style="height: 220px;" alt="Hair Spa">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-light text-dark border px-2 py-1">RELAXATION</span>
+                        <h4 class="fw-bold text-success mb-0">₹500</h4>
+                    </div>
+                    <h3 class="h5 fw-bold text-dark">Deep Conditioning Hair Spa</h3>
+                    <p class="text-muted small mb-4">Revitalize your scalp and hair roots with essential nutrient oils and relaxing steam massage.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                        <span class="text-muted small">⏱ 45 Mins</span>
+                        <a asp-controller="Customer" asp-action="Dashboard" class="btn btn-dark btn-sm rounded-pill px-3 fw-bold text-decoration-none">Book Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service 5 (Hair) -->
+        <div class="col-md-4 col-sm-6 service-item" data-category="hair">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 style-card">
+                <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80" class="card-img-top object-fit-cover" style="height: 220px;" alt="Classic Buzz">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-light text-dark border px-2 py-1">CLASSIC</span>
+                        <h4 class="fw-bold text-success mb-0">₹250</h4>
+                    </div>
+                    <h3 class="h5 fw-bold text-dark">Classic Gentleman Cut</h3>
+                    <p class="text-muted small mb-4">Traditional scissor and clipper cut tailored for a sophisticated corporate or formal look.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                        <span class="text-muted small">⏱ 25 Mins</span>
+                        <a asp-controller="Customer" asp-action="Dashboard" class="btn btn-dark btn-sm rounded-pill px-3 fw-bold text-decoration-none">Book Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service 6 (Combo) -->
+        <div class="col-md-4 col-sm-6 service-item" data-category="combo">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 style-card">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80" class="card-img-top object-fit-cover" style="height: 220px;" alt="Combo Package">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-warning text-dark fw-bold px-2 py-1">COMBO DEAL</span>
+                        <h4 class="fw-bold text-success mb-0">₹600</h4>
+                    </div>
+                    <h3 class="h5 fw-bold text-dark">GenZ Ultimate Grooming Combo</h3>
+                    <p class="text-muted small mb-4">Complete makeover package including Custom Haircut, Beard Shaping, and Facial Clean-up.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                        <span class="text-muted small">⏱ 60 Mins</span>
+                        <a asp-controller="Customer" asp-action="Dashboard" class="btn btn-dark btn-sm rounded-pill px-3 fw-bold text-decoration-none">Book Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .style-card {
+        transition: 0.3s ease;
+        border: 1px solid #eaeaea !important;
+    }
+
+        .style-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08) !important;
+            border-color: #c9a227 !important;
+        }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const buttons = document.querySelectorAll(".filter-btn");
+        const items = document.querySelectorAll(".service-item");
+
+        buttons.forEach(button => {
+            button.addEventListener("click", function () {
+                // Remove active styling from all buttons
+                buttons.forEach(btn => {
+                    btn.classList.remove("btn-dark", "fw-bold", "shadow-sm");
+                    btn.classList.add("btn-outline-dark");
+                });
+
+                // Add active styling to clicked button
+                this.classList.remove("btn-outline-dark");
+                this.classList.add("btn-dark", "fw-bold", "shadow-sm");
+
+                const filterValue = this.getAttribute("data-filter");
+
+                items.forEach(item => {
+                    if (filterValue === "all" || item.getAttribute("data-category") === filterValue) {
+                        item.style.display = "block";
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+            });
+        });
+    });
+</script>
