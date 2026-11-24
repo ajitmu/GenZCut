@@ -119,7 +119,7 @@
         </div>
 
         <h3 class="text-center fw-bold mb-1" style="color: #2c5364;">GenZCut</h3>
-        <p class="text-center text-muted fs-7 mb-4">Create your account & get started</p>
+        <p class="text-center text-muted small mb-4">Create your account & get started</p>
 
         @if (ViewBag.Error != null)
         {
@@ -134,7 +134,7 @@
                 <i class="fa-solid fa-user input-icon"></i>
                 <input asp-for="FullName" class="form-control" id="floatingName" placeholder="John Doe" required />
                 <label for="floatingName">Full Name</label>
-                <span asp-validation-for="FullName" class="text-danger fs-7"></span>
+                <span asp-validation-for="FullName" class="text-danger small"></span>
             </div>
 
             <!-- Email Address -->
@@ -142,7 +142,7 @@
                 <i class="fa-solid fa-envelope input-icon"></i>
                 <input asp-for="Email" class="form-control" id="floatingEmail" placeholder="name@example.com" required />
                 <label for="floatingEmail">Email Address</label>
-                <span asp-validation-for="Email" class="text-danger fs-7"></span>
+                <span asp-validation-for="Email" class="text-danger small"></span>
             </div>
 
             <!-- Phone Number -->
@@ -150,7 +150,7 @@
                 <i class="fa-solid fa-phone input-icon"></i>
                 <input asp-for="Phone" class="form-control" id="floatingPhone" placeholder="1234567890" required />
                 <label for="floatingPhone">Phone Number</label>
-                <span asp-validation-for="Phone" class="text-danger fs-7"></span>
+                <span asp-validation-for="Phone" class="text-danger small"></span>
             </div>
 
             <!-- Password -->
@@ -158,18 +158,20 @@
                 <i class="fa-solid fa-lock input-icon"></i>
                 <input asp-for="Password" type="password" class="form-control" id="floatingPassword" placeholder="Password" required />
                 <label for="floatingPassword">Password</label>
-                <span asp-validation-for="Password" class="text-danger fs-7"></span>
+                <span asp-validation-for="Password" class="text-danger small"></span>
             </div>
 
             <!-- Role Selection -->
             <div class="form-floating mb-4 position-relative">
                 <i class="fa-solid fa-user-tag input-icon"></i>
                 <select asp-for="Role" class="form-select form-select-custom" id="floatingRole" required>
+                    <option value="" disabled selected>-- Select Role --</option>
                     <option value="Barber">Barber</option>
                     <option value="Customer">Customer</option>
+                    <option value="Admin">Admin</option>
                 </select>
                 <label for="floatingRole">Register As</label>
-                <span asp-validation-for="Role" class="text-danger fs-7"></span>
+                <span asp-validation-for="Role" class="text-danger small"></span>
             </div>
 
             <!-- Submit Button -->
@@ -179,7 +181,7 @@
         </form>
 
         <div class="text-center mt-2">
-            <p class="text-muted fs-7 mb-0">Already have an account? <a asp-action="Login" class="fw-bold text-decoration-none" style="color: #ff4b2b;">Log In</a></p>
+            <p class="text-muted small mb-0">Already have an account? <a asp-action="Login" class="fw-bold text-decoration-none" style="color: #ff4b2b;">Log In</a></p>
         </div>
 
         <div class="text-center footer-text mt-3">
@@ -188,6 +190,9 @@
     </div>
 
     <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 </body>
 </html>

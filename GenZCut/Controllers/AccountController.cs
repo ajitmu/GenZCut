@@ -72,8 +72,13 @@ namespace GenZCut.Controllers
                                 }
                                 return RedirectToAction("Dashboard", "Barber");
                             }
+                            else if (role == "Admin")
+                            {
+                                return RedirectToAction("Dashboard", "Admin");
+                            }
                             else
                             {
+                                // Customer ke liye
                                 return RedirectToAction("Index", "Home");
                             }
                         }
@@ -95,7 +100,7 @@ namespace GenZCut.Controllers
             return View();
         }
 
-        // 4. Register Form Submit Logic (Barber & Customer Both)
+        // 4. Register Form Submit Logic (Barber, Customer & Admin)
         [HttpPost]
         public IActionResult Register(RegisterViewModel model)
         {
@@ -139,7 +144,7 @@ namespace GenZCut.Controllers
                     newUserId = Convert.ToInt32(cmd.ExecuteScalar());
                 }
 
-                // If Role is Barber, insert entry in Barbers table
+                // Role ke hisab se respective table mein entry karein
                 if (model.Role == "Barber")
                 {
                     string insertBarberQuery = "INSERT INTO Barbers (UserId, IsAvailable) VALUES (@UserId, 1)";
@@ -149,9 +154,8 @@ namespace GenZCut.Controllers
                         barberCmd.ExecuteNonQuery();
                     }
                 }
-                else
+                else if (model.Role == "Customer")
                 {
-                    // If Customer, insert entry in Customers table
                     string insertCustomerQuery = "INSERT INTO Customers (UserId) VALUES (@UserId)";
                     using (SqlCommand customerCmd = new SqlCommand(insertCustomerQuery, conn))
                     {
@@ -159,6 +163,7 @@ namespace GenZCut.Controllers
                         customerCmd.ExecuteNonQuery();
                     }
                 }
+                // Note: Agar Role == "Admin" hai toh sirf Users table mein entry kafi hai
 
                 TempData["SuccessMsg"] = "Registration successful! Please login.";
                 return RedirectToAction("Login");
