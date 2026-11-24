@@ -18,14 +18,16 @@ namespace GenZCut.Controllers
             return _configuration.GetConnectionString("DefaultConnection")!;
         }
 
-        // 1. Login Page Show Karein
+        // ==========================================
+        // 1. COMMON PORTAL (Admin, Customer, Barber)
+        // ==========================================
+
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
 
-        // 2. Login Form Submit Logic
         [HttpPost]
         public IActionResult Login(LoginViewModel model)
         {
@@ -36,7 +38,6 @@ namespace GenZCut.Controllers
 
             using (SqlConnection conn = new SqlConnection(GetConnectionString()))
             {
-                // Users aur Barbers table se detail fetch karein
                 string query = @"
                     SELECT u.UserId, u.FullName, u.Role, b.BarberId 
                     FROM Users u 
@@ -57,12 +58,10 @@ namespace GenZCut.Controllers
                             int userId = Convert.ToInt32(reader["UserId"]);
                             string fullName = reader["FullName"].ToString() ?? "";
 
-                            // Session Values Store Karein
                             HttpContext.Session.SetInt32("UserId", userId);
                             HttpContext.Session.SetString("UserName", fullName);
                             HttpContext.Session.SetString("UserRole", role);
 
-                            // Role ke hisab se redirection
                             if (role == "Barber")
                             {
                                 if (reader["BarberId"] != DBNull.Value)
@@ -78,7 +77,6 @@ namespace GenZCut.Controllers
                             }
                             else
                             {
-                                // Customer ke liye
                                 return RedirectToAction("Index", "Home");
                             }
                         }
@@ -93,14 +91,12 @@ namespace GenZCut.Controllers
             return View(model);
         }
 
-        // 3. Register Page Show Karein
         [HttpGet]
         public IActionResult Register()
         {
             return View();
         }
 
-        // 4. Register Form Submit Logic (Barber, Customer & Admin)
         [HttpPost]
         public IActionResult Register(RegisterViewModel model)
         {
@@ -113,7 +109,6 @@ namespace GenZCut.Controllers
             {
                 conn.Open();
 
-                // Check if email already exists
                 string checkQuery = "SELECT COUNT(1) FROM Users WHERE Email = @Email";
                 using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
                 {
@@ -126,7 +121,6 @@ namespace GenZCut.Controllers
                     }
                 }
 
-                // Insert into Users table and get new UserId
                 string insertUserQuery = @"
                     INSERT INTO Users (FullName, Email, Phone, Password, Role) 
                     VALUES (@FullName, @Email, @Phone, @Password, @Role);
@@ -144,7 +138,6 @@ namespace GenZCut.Controllers
                     newUserId = Convert.ToInt32(cmd.ExecuteScalar());
                 }
 
-                // Role ke hisab se respective table mein entry karein
                 if (model.Role == "Barber")
                 {
                     string insertBarberQuery = "INSERT INTO Barbers (UserId, IsAvailable) VALUES (@UserId, 1)";
@@ -163,14 +156,149 @@ namespace GenZCut.Controllers
                         customerCmd.ExecuteNonQuery();
                     }
                 }
-                // Note: Agar Role == "Admin" hai toh sirf Users table mein entry kafi hai
 
                 TempData["SuccessMsg"] = "Registration successful! Please login.";
                 return RedirectToAction("Login");
             }
         }
 
-        // 5. Logout Logic
+        // ==========================================
+        // 2. BARBER PARTNER PORTAL (Barber Only)
+        // ==========================================
+
+        [HttpGet]
+        public IActionResult BarberLogin()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult BarberLogin(LoginViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
+            {
+                string query = @"
+                    SELECT u.UserId, u.FullName, u.Role, b.BarberId 
+                    FROM Users u 
+                    LEFT JOIN Barbers b ON u.UserId = b.UserId 
+                    WHERE u.Email = @Email AND u.Password = @Password";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Email", model.Email);
+                    cmd.Parameters.AddWithValue("@Password", model.Password);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            string role = reader["Role"].ToString() ?? "";
+
+                            // Sirf Barber ko hi allow karein
+                            if (role != "Barber")
+                            {
+                                ViewBag.Error = "Access Denied! This portal is only for Barbers.";
+                                return View(model);
+                            }
+
+                            int userId = Convert.ToInt32(reader["UserId"]);
+                            string fullName = reader["FullName"].ToString() ?? "";
+
+                            HttpContext.Session.SetInt32("UserId", userId);
+                            HttpContext.Session.SetString("UserName", fullName);
+                            HttpContext.Session.SetString("UserRole", role);
+
+                            if (reader["BarberId"] != DBNull.Value)
+                            {
+                                int barberId = Convert.ToInt32(reader["BarberId"]);
+                                HttpContext.Session.SetInt32("BarberId", barberId);
+                            }
+
+                            return RedirectToAction("Dashboard", "Barber");
+                        }
+                        else
+                        {
+                            ViewBag.Error = "Invalid Email or Password!";
+                        }
+                    }
+                }
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult BarberRegister()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult BarberRegister(RegisterViewModel model)
+        {
+            // Force Role to Barber
+            model.Role = "Barber";
+            ModelState.Remove("Role");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
+            {
+                conn.Open();
+
+                string checkQuery = "SELECT COUNT(1) FROM Users WHERE Email = @Email";
+                using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
+                {
+                    checkCmd.Parameters.AddWithValue("@Email", model.Email);
+                    int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+                    if (count > 0)
+                    {
+                        ViewBag.Error = "Email is already registered!";
+                        return View(model);
+                    }
+                }
+
+                string insertUserQuery = @"
+                    INSERT INTO Users (FullName, Email, Phone, Password, Role) 
+                    VALUES (@FullName, @Email, @Phone, @Password, 'Barber');
+                    SELECT SCOPE_IDENTITY();";
+
+                int newUserId;
+                using (SqlCommand cmd = new SqlCommand(insertUserQuery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@FullName", model.FullName);
+                    cmd.Parameters.AddWithValue("@Email", model.Email);
+                    cmd.Parameters.AddWithValue("@Phone", model.Phone);
+                    cmd.Parameters.AddWithValue("@Password", model.Password);
+
+                    newUserId = Convert.ToInt32(cmd.ExecuteScalar());
+                }
+
+                string insertBarberQuery = "INSERT INTO Barbers (UserId, IsAvailable) VALUES (@UserId, 1)";
+                using (SqlCommand barberCmd = new SqlCommand(insertBarberQuery, conn))
+                {
+                    barberCmd.Parameters.AddWithValue("@UserId", newUserId);
+                    barberCmd.ExecuteNonQuery();
+                }
+
+                TempData["SuccessMsg"] = "Barber registration successful! Please login.";
+                return RedirectToAction("BarberLogin");
+            }
+        }
+
+        // ==========================================
+        // 3. LOGOUT LOGIC
+        // ==========================================
+
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
