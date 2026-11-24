@@ -1,0 +1,128 @@
+﻿@model GenZCut.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - GenZCut</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+            body {
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0;
+            }
+
+            .login-card {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+                overflow: hidden;
+                width: 100%;
+                max-width: 420px;
+                padding: 40px 30px;
+                transition: transform 0.3s ease;
+            }
+
+            .brand-logo {
+                width: 70px;
+                height: 70px;
+                background: linear-gradient(135deg, #ff416c, #ff4b2b);
+                color: #fff;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 32px;
+                margin: 0 auto 15px auto;
+                box-shadow: 0 8px 20px rgba(255, 65, 108, 0.4);
+            }
+
+            .form-floating input {
+                border-radius: 12px;
+                border: 1px solid #e0e0e0;
+                padding-left: 45px !important;
+                height: 55px;
+            }
+
+            .form-floating label {
+                padding-left: 45px;
+            }
+
+            .input-icon {
+                position: absolute;
+                top: 18px;
+                left: 15px;
+                z-index: 10;
+                color: #888;
+                font-size: 18px;
+            }
+
+            .btn-custom {
+                background: linear-gradient(135deg, #ff416c, #ff4b2b);
+                border: none;
+                border-radius: 12px;
+                color: white;
+                font-weight: 600;
+                font-size: 16px;
+                height: 50px;
+                box-shadow: 0 8px 20px rgba(255, 65, 108, 0.3);
+                transition: all 0.3s ease;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="brand-logo">
+            <i class="fa-solid fa-scissors"></i>
+        </div>
+
+        <h3 class="text-center fw-bold mb-1" style="color: #2c5364;">GenZCut</h3>
+        <p class="text-center text-muted fs-7 mb-4">Welcome back! Please login to your account.</p>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger rounded-3 text-center py-2 fs-6 mb-3">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> @ViewBag.Error
+            </div>
+        }
+
+        <form asp-action="Login" method="post">
+            <div class="form-floating mb-3 position-relative">
+                <i class="fa-solid fa-envelope input-icon"></i>
+                <input asp-for="Email" class="form-control" id="floatingEmail" placeholder="name@example.com" required />
+                <label for="floatingEmail">Email Address</label>
+                <span asp-validation-for="Email" class="text-danger fs-7"></span>
+            </div>
+
+            <div class="form-floating mb-4 position-relative">
+                <i class="fa-solid fa-lock input-icon"></i>
+                <input asp-for="Password" type="password" class="form-control" id="floatingPassword" placeholder="Password" required />
+                <label for="floatingPassword">Password</label>
+                <span asp-validation-for="Password" class="text-danger fs-7"></span>
+            </div>
+
+            <button type="submit" class="btn btn-custom w-100 mb-3">
+                <i class="fa-solid fa-right-to-bracket me-2"></i> Log In
+            </button>
+        </form>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
