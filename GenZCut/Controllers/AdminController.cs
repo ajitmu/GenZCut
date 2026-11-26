@@ -1,6 +1,6 @@
-﻿using GenZCut.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace GenZCut.Controllers
 {
@@ -13,456 +13,142 @@ namespace GenZCut.Controllers
             _configuration = configuration;
         }
 
-        // =====================================================
-        // CONNECTION STRING
-        // =====================================================
-
-        private string ConnectionString =>
+        private string GetConnectionString() =>
             _configuration.GetConnectionString("DefaultConnection")!;
 
+        private bool IsLoggedIn() =>
+            !string.IsNullOrEmpty(HttpContext.Session.GetString("AdminEmail"));
 
-        // =====================================================
-        // ADMIN LOGIN - GET
-        // =====================================================
-
+        // 1. Login
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
 
-
-        // =====================================================
-        // ADMIN LOGIN - POST
-        // =====================================================
-
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Login(Admin admin)
+        public IActionResult Login(string email, string password)
         {
-            if (!ModelState.IsValid)
+            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
             {
-                return View(admin);
-            }
-
-            try
-            {
-                using SqlConnection connection =
-                    new SqlConnection(ConnectionString);
-
-                connection.Open();
-
-                string query = @"
-                    SELECT AdminId
-                    FROM Admins
-                    WHERE Email = @Email
-                    AND Password = @Password";
-
-                using SqlCommand command =
-                    new SqlCommand(query, connection);
-
-                command.Parameters.AddWithValue(
-                    "@Email",
-                    admin.Email);
-
-                command.Parameters.AddWithValue(
-                    "@Password",
-                    admin.Password);
-
-                object? result =
-                    command.ExecuteScalar();
-
-                if (result != null)
+                string query = "SELECT TOP 1 Email FROM dbo.Admins WHERE Email = @Email AND Password = @Password";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    HttpContext.Session.SetInt32(
-                        "AdminId",
-                        Convert.ToInt32(result));
+                    cmd.Parameters.AddWithValue("@Email", email.Trim());
+                    cmd.Parameters.AddWithValue("@Password", password);
 
-                    HttpContext.Session.SetString(
-                        "AdminEmail",
-                        admin.Email);
-
-                    return RedirectToAction("Dashboard");
+                    conn.Open();
+                    var result = cmd.ExecuteScalar();
+                    if (result != null)
+                    {
+                        HttpContext.Session.SetString("AdminEmail", result.ToString()!);
+                        return RedirectToAction("Dashboard");
+                    }
                 }
-
-                ModelState.AddModelError(
-                    "",
-                    "Invalid email or password.");
-
-                return View(admin);
-            }
-            catch (SqlException)
-            {
-                ModelState.AddModelError(
-                    "",
-                    "Unable to connect to the database.");
-
-                return View(admin);
-            }
-        }
-
-
-        // =====================================================
-        // ADMIN DASHBOARD
-        // =====================================================
-
-        [HttpGet]
-        public IActionResult Dashboard()
-        {
-            int? adminId =
-                HttpContext.Session.GetInt32("AdminId");
-
-            if (adminId == null)
-            {
-                return RedirectToAction("Login");
             }
 
-            ViewBag.AdminEmail =
-                HttpContext.Session.GetString("AdminEmail");
-
-
-            // ==========================================
-            // TOTAL CUSTOMERS
-            // ==========================================
-
-            ViewBag.TotalCustomers = GetCount(
-                "SELECT COUNT(*) FROM dbo.Customers");
-
-
-            // ==========================================
-            // TOTAL APPOINTMENTS
-            // ==========================================
-
-            ViewBag.TotalAppointments = GetCount(
-                "SELECT COUNT(*) FROM dbo.Appointments");
-
-
-            // ==========================================
-            // TOTAL SERVICES
-            // ==========================================
-
-            ViewBag.TotalServices = GetCount(
-                "SELECT COUNT(*) FROM dbo.Hairstyles");
-
-
-            // ==========================================
-            // PENDING APPOINTMENTS
-            // ==========================================
-
-            ViewBag.PendingAppointments = GetCount(
-                @"SELECT COUNT(*)
-                  FROM dbo.Appointments
-                  WHERE Status = 'Pending'");
-
-
-            // ==========================================
-            // AVAILABLE SERVICES
-            // ==========================================
-
-            ViewBag.AvailableServices = GetCount(
-                "SELECT COUNT(*) FROM dbo.Hairstyles");
-
-
-            // ==========================================
-            // ACTIVE BARBERS
-            // ==========================================
-
-            ViewBag.ActiveBarbers = GetCount(
-                @"SELECT COUNT(*)
-                  FROM dbo.Barbers
-                  WHERE Status = 'Active'");
-
-
-            // ==========================================
-            // COMPLETED BOOKINGS
-            // ==========================================
-
-            ViewBag.CompletedBookings = GetCount(
-                @"SELECT COUNT(*)
-                  FROM dbo.Appointments
-                  WHERE Status = 'Completed'");
-
-
+            ViewBag.Error = "Invalid Email ya Password";
             return View();
         }
 
-
-        // =====================================================
-        // HELPER - GET COUNT
-        // =====================================================
-
-        private int GetCount(string query)
+        // Logout
+        public IActionResult Logout()
         {
-            try
+            HttpContext.Session.Remove("AdminEmail");
+            return RedirectToAction("Login");
+        }
+
+        // 2. Dashboard
+        public IActionResult Dashboard()
+        {
+            if (!IsLoggedIn()) return RedirectToAction("Login");
+
+            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
             {
-                using SqlConnection connection =
-                    new SqlConnection(ConnectionString);
+                conn.Open();
+                ViewBag.AdminEmail = HttpContext.Session.GetString("AdminEmail");
+                ViewBag.TotalCustomers = GetCount(conn, "SELECT COUNT(*) FROM dbo.Customers");
+                ViewBag.TotalBarbers = GetCount(conn, "SELECT COUNT(*) FROM dbo.Barbers");
+                ViewBag.TotalHairstyles = GetCount(conn, "SELECT COUNT(*) FROM dbo.Hairstyles");
+                ViewBag.TotalAppointments = GetCount(conn, "SELECT COUNT(*) FROM dbo.Appointments");
+                ViewBag.PendingAppointments = GetCount(conn, "SELECT COUNT(*) FROM dbo.Appointments WHERE ISNULL(Status, 'Pending') = 'Pending'");
 
-                connection.Open();
+                DataTable dtRecent = new DataTable();
+                string recentQuery = @"
+                    SELECT TOP 8 a.AppointmentId, uC.FullName AS CustomerName, uB.FullName AS BarberName,
+                           h.StyleName, a.AppointmentDate, a.AppointmentTime, ISNULL(a.Status, 'Pending') AS Status
+                    FROM dbo.Appointments a
+                    JOIN dbo.Customers c ON a.CustomerId = c.CustomerId
+                    JOIN dbo.Users uC ON c.UserId = uC.UserId
+                    JOIN dbo.Barbers b ON a.BarberId = b.BarberId
+                    JOIN dbo.Users uB ON b.UserId = uB.UserId
+                    JOIN dbo.Hairstyles h ON a.StyleId = h.StyleId
+                    ORDER BY a.AppointmentId DESC";
 
-                using SqlCommand command =
-                    new SqlCommand(query, connection);
+                using (SqlDataAdapter da = new SqlDataAdapter(recentQuery, conn))
+                {
+                    da.Fill(dtRecent);
+                }
 
-                return Convert.ToInt32(
-                    command.ExecuteScalar());
-            }
-            catch (SqlException)
-            {
-                return 0;
+                return View(dtRecent);
             }
         }
 
-
-        // =====================================================
-        // APPOINTMENT MANAGEMENT - GET
-        // =====================================================
-
-        [HttpGet]
+        // 3. Appointments Management
         public IActionResult Appointments()
         {
-            int? adminId =
-                HttpContext.Session.GetInt32("AdminId");
+            if (!IsLoggedIn()) return RedirectToAction("Login");
 
-            if (adminId == null)
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
             {
-                return RedirectToAction("Login");
-            }
-
-            List<AdminAppointmentViewModel> appointments =
-                new List<AdminAppointmentViewModel>();
-
-            try
-            {
-                using SqlConnection connection =
-                    new SqlConnection(ConnectionString);
-
-                connection.Open();
-
                 string query = @"
-                    SELECT
-                        a.AppointmentId,
-                        a.AppointmentDate,
-                        a.AppointmentTime,
-                        a.Status,
+                    SELECT a.AppointmentId, uC.FullName AS CustomerName, uC.Phone,
+                           uB.FullName AS BarberName, h.StyleName, h.Price,
+                           a.AppointmentDate, a.AppointmentTime, ISNULL(a.Status, 'Pending') AS Status
+                    FROM dbo.Appointments a
+                    JOIN dbo.Customers c ON a.CustomerId = c.CustomerId
+                    JOIN dbo.Users uC ON c.UserId = uC.UserId
+                    JOIN dbo.Barbers b ON a.BarberId = b.BarberId
+                    JOIN dbo.Users uB ON b.UserId = uB.UserId
+                    JOIN dbo.Hairstyles h ON a.StyleId = h.StyleId
+                    ORDER BY a.AppointmentId DESC";
 
-                        u.FullName AS CustomerName,
-                        u.Phone AS CustomerPhone,
-
-                        b.Specialization,
-                        b.Experience,
-
-                        bu.FullName AS BarberName,
-
-                        h.StyleName,
-                        h.Price,
-                        h.Duration
-
-                    FROM Appointments a
-
-                    INNER JOIN Customers c
-                        ON a.CustomerId = c.CustomerId
-
-                    INNER JOIN Users u
-                        ON c.UserId = u.UserId
-
-                    INNER JOIN Barbers b
-                        ON a.BarberId = b.BarberId
-
-                    INNER JOIN Users bu
-                        ON b.UserId = bu.UserId
-
-                    INNER JOIN Hairstyles h
-                        ON a.StyleId = h.StyleId
-
-                    ORDER BY
-                        a.AppointmentDate DESC,
-                        a.AppointmentTime DESC";
-
-                using SqlCommand command =
-                    new SqlCommand(query, connection);
-
-                using SqlDataReader reader =
-                    command.ExecuteReader();
-
-                while (reader.Read())
+                using (SqlDataAdapter da = new SqlDataAdapter(query, conn))
                 {
-                    appointments.Add(
-                        new AdminAppointmentViewModel
-                        {
-                            AppointmentId =
-                                Convert.ToInt32(
-                                    reader["AppointmentId"]),
-
-                            AppointmentDate =
-                                Convert.ToDateTime(
-                                    reader["AppointmentDate"]),
-
-                            AppointmentTime =
-                                (TimeSpan)
-                                    reader["AppointmentTime"],
-
-                            Status =
-                                reader["Status"] == DBNull.Value
-                                    ? "Pending"
-                                    : reader["Status"].ToString()
-                                      ?? "Pending",
-
-                            CustomerName =
-                                reader["CustomerName"] == DBNull.Value
-                                    ? ""
-                                    : reader["CustomerName"].ToString()
-                                      ?? "",
-
-                            CustomerPhone =
-                                reader["CustomerPhone"] == DBNull.Value
-                                    ? ""
-                                    : reader["CustomerPhone"].ToString()
-                                      ?? "",
-
-                            BarberName =
-                                reader["BarberName"] == DBNull.Value
-                                    ? ""
-                                    : reader["BarberName"].ToString()
-                                      ?? "",
-
-                            Specialization =
-                                reader["Specialization"] == DBNull.Value
-                                    ? ""
-                                    : reader["Specialization"].ToString()
-                                      ?? "",
-
-                            Experience =
-                                reader["Experience"] == DBNull.Value
-                                    ? 0
-                                    : Convert.ToInt32(
-                                        reader["Experience"]),
-
-                            StyleName =
-                                reader["StyleName"] == DBNull.Value
-                                    ? ""
-                                    : reader["StyleName"].ToString()
-                                      ?? "",
-
-                            Price =
-                                reader["Price"] == DBNull.Value
-                                    ? 0
-                                    : Convert.ToDecimal(
-                                        reader["Price"]),
-
-                            Duration =
-                                reader["Duration"] == DBNull.Value
-                                    ? 0
-                                    : Convert.ToInt32(
-                                        reader["Duration"])
-                        });
+                    da.Fill(dt);
                 }
             }
-            catch (SqlException)
-            {
-                ViewBag.Error =
-                    "Unable to load appointments.";
-            }
 
-            return View(appointments);
+            return View(dt);
         }
 
-
-        // =====================================================
-        // UPDATE APPOINTMENT STATUS
-        // =====================================================
-
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult UpdateAppointmentStatus(
-            int appointmentId,
-            string status)
+        public IActionResult UpdateStatus(int appointmentId, string status)
         {
-            int? adminId =
-                HttpContext.Session.GetInt32("AdminId");
+            if (!IsLoggedIn()) return RedirectToAction("Login");
 
-            if (adminId == null)
+            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
             {
-                return RedirectToAction("Login");
-            }
-
-
-            // Only allowed statuses
-
-            string[] allowedStatuses =
-            {
-                "Pending",
-                "Confirmed",
-                "Completed",
-                "Cancelled"
-            };
-
-            if (!allowedStatuses.Contains(status))
-            {
-                TempData["Error"] =
-                    "Invalid appointment status.";
-
-                return RedirectToAction("Appointments");
-            }
-
-
-            try
-            {
-                using SqlConnection connection =
-                    new SqlConnection(ConnectionString);
-
-                connection.Open();
-
-                string query = @"
-                    UPDATE Appointments
-                    SET Status = @Status
-                    WHERE AppointmentId = @AppointmentId";
-
-                using SqlCommand command =
-                    new SqlCommand(query, connection);
-
-                command.Parameters.AddWithValue(
-                    "@Status",
-                    status);
-
-                command.Parameters.AddWithValue(
-                    "@AppointmentId",
-                    appointmentId);
-
-                int rows =
-                    command.ExecuteNonQuery();
-
-                if (rows > 0)
+                string query = "UPDATE dbo.Appointments SET Status = @Status WHERE AppointmentId = @AppointmentId";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    TempData["Success"] =
-                        "Appointment status updated successfully.";
+                    cmd.Parameters.AddWithValue("@Status", status);
+                    cmd.Parameters.AddWithValue("@AppointmentId", appointmentId);
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
                 }
-                else
-                {
-                    TempData["Error"] =
-                        "Appointment not found.";
-                }
-            }
-            catch (SqlException)
-            {
-                TempData["Error"] =
-                    "Unable to update appointment status.";
             }
 
             return RedirectToAction("Appointments");
         }
 
-
-        // =====================================================
-        // ADMIN LOGOUT
-        // =====================================================
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Logout()
+        private static int GetCount(SqlConnection conn, string sql)
         {
-            HttpContext.Session.Clear();
-
-            return RedirectToAction("Login");
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            }
         }
     }
 }

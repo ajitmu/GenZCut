@@ -1,0 +1,72 @@
+﻿@* Views/Admin/Hairstyles.cshtml *@
+@model GenZCut.Models.AdminHairstylesViewModel
+@{
+    ViewData["Title"] = "Hairstyles Catalog";
+    Layout = "_AdminLayout";
+}
+
+<h2 class="fw-bold mb-3"><i class="bi bi-stars text-warning me-2"></i>Hairstyles & Service Menu</h2>
+
+<div class="glass-card p-4 mb-4">
+    <h6 class="fw-bold text-info mb-3">+ Add New Signature Style</h6>
+    <form asp-action="CreateHairstyle" method="post" class="row g-3">
+        @Html.AntiForgeryToken()
+        <div class="col-md-3">
+            <label class="form-label small text-secondary">Style Name</label>
+            <input type="text" name="NewStyle.StyleName" class="form-control form-control-sm form-control-dark" placeholder="Textured Crop Fade" required />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small text-secondary">Price (₹)</label>
+            <input type="number" step="0.01" name="NewStyle.Price" class="form-control form-control-sm form-control-dark" placeholder="350" required />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small text-secondary">Duration (min)</label>
+            <input type="number" name="NewStyle.Duration" class="form-control form-control-sm form-control-dark" placeholder="35" required />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small text-secondary">Description</label>
+            <input type="text" name="NewStyle.Description" class="form-control form-control-sm form-control-dark" placeholder="Sharp fade + matte finish" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-sm btn-gradient w-100 py-2">Add to Menu</button>
+        </div>
+    </form>
+</div>
+
+<div class="glass-card overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-pro">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Style Name</th>
+                    <th>Description</th>
+                    <th>Duration</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model.Styles)
+                {
+                    <tr>
+                        <td class="text-secondary">#@s.StyleId</td>
+                        <td class="fw-bold text-light">@s.StyleName</td>
+                        <td class="text-secondary">@(s.Description ?? "-")</td>
+                        <td><span class="badge bg-secondary bg-opacity-50">@s.Duration min</span></td>
+                        <td class="text-warning fw-bold">₹@s.Price.ToString("N0")</td>
+                        <td>
+                            <form asp-action="DeleteHairstyle" method="post" onsubmit="return confirm('Delete this hairstyle?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="styleId" value="@s.StyleId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-3">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

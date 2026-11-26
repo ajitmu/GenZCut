@@ -1,0 +1,60 @@
+﻿@* Views/Admin/Barbers.cshtml *@
+@model GenZCut.Models.AdminBarbersViewModel
+@{
+    ViewData["Title"] = "Barbers Team";
+    Layout = "_AdminLayout";
+}
+
+<h2 class="fw-bold mb-3"><i class="bi bi-scissors text-warning me-2"></i>Stylists & Barbers Roster</h2>
+
+<div class="glass-card overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-pro">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Stylist</th>
+                    <th>Phone</th>
+                    <th>Completed</th>
+                    <th>Exp (Yrs)</th>
+                    <th>Specialization</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model.Barbers)
+                {
+                    <tr>
+                        <td class="text-secondary">#@b.BarberId</td>
+                        <td>
+                            <div class="fw-bold text-light">@b.FullName</div>
+                            <div class="small text-secondary">@b.Email</div>
+                        </td>
+                        <td>@b.Phone</td>
+                        <td><span class="badge bg-info text-dark rounded-pill px-3">@b.CompletedBookings Cuts</span></td>
+                        <form asp-action="UpdateBarberProfile" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="barberId" value="@b.BarberId" />
+                        <td style="width: 95px;">
+                            <input type="number" name="experience" value="@b.Experience" min="0" max="50" class="form-control form-control-sm form-control-dark" />
+                        </td>
+                        <td style="width: 200px;">
+                            <input type="text" name="specialization" value="@b.Specialization" class="form-control form-control-sm form-control-dark" />
+                        </td>
+                        <td style="width: 125px;">
+                            <select name="status" class="form-select form-select-sm form-select-dark">
+                                <option value="Active" selected="@(b.Status == "Active")">Active</option>
+                                <option value="Inactive" selected="@(b.Status == "Inactive")">Inactive</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button type="submit" class="btn btn-sm btn-gradient px-3">Update</button>
+                        </td>
+                        </form>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

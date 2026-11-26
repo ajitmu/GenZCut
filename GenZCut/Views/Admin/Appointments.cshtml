@@ -1,440 +1,160 @@
-﻿@model List<GenZCut.Models.AdminAppointmentViewModel>
-
+﻿@using System.Data
+@model DataTable
 @{
-    ViewData["Title"] = "Appointment Management";
+    ViewData["Title"] = "Appointments";
+    Layout = "_AdminLayout";
 }
 
-<div class="container-fluid py-4">
+<style>
+    .lux-appt-wrap {
+        background-color: #0b0f19;
+        background-image: linear-gradient(135deg, #0b0f19, #1b1838);
+        border: 1px solid rgba(251, 191, 36, 0.22);
+        border-radius: 18px;
+        padding: 24px;
+        color: #f8fafc;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    }
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    .lux-appt-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding-bottom: 18px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .lux-appt-title {
+        margin: 0;
+        font-weight: 800;
+        color: #fbbf24;
+        letter-spacing: 0.3px;
+    }
+
+    .lux-table {
+        color: #f1f5f9;
+        margin-bottom: 0;
+    }
+
+        .lux-table thead th {
+            background-color: #151c2c;
+            color: #cbd5e1;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-color: rgba(255, 255, 255, 0.08);
+            padding: 13px 14px;
+        }
+
+        .lux-table tbody td {
+            border-color: rgba(255, 255, 255, 0.07);
+            padding: 13px 14px;
+            vertical-align: middle;
+        }
+
+        .lux-table tbody tr:hover {
+            background-color: rgba(251, 191, 36, 0.05);
+        }
+
+    .btn-lux-save {
+        background-color: #eab308;
+        color: #0f172a;
+        border: none;
+        font-weight: 700;
+    }
+
+        .btn-lux-save:hover {
+            background-color: #facc15;
+            color: #0f172a;
+        }
+</style>
+
+<div class="lux-appt-wrap">
+    <div class="lux-appt-header">
         <div>
-            <h2 class="fw-bold mb-1">Appointment Management</h2>
-            <p class="text-muted mb-0">
-                View and manage all customer appointments.
-            </p>
+            <h2 class="lux-appt-title"><i class="bi bi-calendar2-check-fill me-2"></i>Appointments Control</h2>
+            <small style="color: #94a3b8;">Total Bookings: @(Model?.Rows.Count ?? 0)</small>
         </div>
-
-        <a asp-controller="Admin"
-           asp-action="Dashboard"
-           class="btn btn-outline-dark">
-            ← Dashboard
-        </a>
+        <a href="/Admin/Dashboard" class="btn btn-outline-warning btn-sm fw-semibold px-3">← Dashboard</a>
     </div>
 
+    <div class="table-responsive rounded-3 overflow-hidden border border-secondary border-opacity-25">
+        <table class="table lux-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Barber</th>
+                    <th>Style</th>
+                    <th>Price</th>
+                    <th>Date &amp; Time</th>
+                    <th>Status</th>
+                    <th>Update Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Rows.Count > 0)
+                {
+                    foreach (DataRow row in Model.Rows)
+                    {
+                        var apptId = row["AppointmentId"]?.ToString() ?? "0";
+                        var customer = row["CustomerName"]?.ToString() ?? "-";
+                        var phone = row["Phone"]?.ToString() ?? "-";
+                        var barber = row["BarberName"]?.ToString() ?? "-";
+                        var style = row["StyleName"]?.ToString() ?? "-";
+                        var price = row["Price"]?.ToString() ?? "0";
+                        var time = row["AppointmentTime"]?.ToString() ?? "-";
+                        var status = row["Status"]?.ToString() ?? "Pending";
 
-    <!-- SUCCESS MESSAGE -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show">
-            <strong>Success!</strong>
-            @TempData["Success"]
+                        var dateStr = "-";
+                        if (row["AppointmentDate"] != DBNull.Value && DateTime.TryParse(row["AppointmentDate"].ToString(), out var d))
+                        {
+                            dateStr = d.ToString("dd MMM yyyy");
+                        }
 
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert">
-            </button>
-        </div>
-    }
+                        var statusBadge = status switch
+                        {
+                            "Completed" => "bg-success",
+                            "Confirmed" => "bg-info text-dark",
+                            "Cancelled" => "bg-danger",
+                            _ => "bg-warning text-dark"
+                        };
 
-
-    <!-- ERROR MESSAGE -->
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show">
-            <strong>Error!</strong>
-            @TempData["Error"]
-
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert">
-            </button>
-        </div>
-    }
-
-
-    @if (ViewBag.Error != null)
-    {
-        <div class="alert alert-danger">
-            @ViewBag.Error
-        </div>
-    }
-
-
-    <!-- APPOINTMENT COUNT -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-
-                <div>
-                    <h5 class="fw-bold mb-1">
-                        All Appointments
-                    </h5>
-
-                    <p class="text-muted mb-0">
-                        Manage booking status from here.
-                    </p>
-                </div>
-
-                <span class="badge bg-dark fs-6 px-3 py-2">
-                    @(Model?.Count ?? 0) Appointments
-                </span>
-
-            </div>
-        </div>
+                        <tr>
+                            <td style="color: #94a3b8;">#@apptId</td>
+                            <td class="fw-semibold">@customer</td>
+                            <td style="color: #cbd5e1;">@phone</td>
+                            <td>@barber</td>
+                            <td><span class="badge bg-primary">@style</span></td>
+                            <td class="fw-bold" style="color: #fbbf24;">₹@price</td>
+                            <td class="small">@dateStr - @time</td>
+                            <td><span class="badge rounded-pill @statusBadge px-3">@status</span></td>
+                            <td>
+                                <form action="/Admin/UpdateStatus" method="post" class="d-flex gap-2">
+                                    <input type="hidden" name="appointmentId" value="@apptId" />
+                                    <select name="status" class="form-select form-select-sm bg-dark text-light border-secondary" style="width: 130px;">
+                                        <option value="Pending" selected="@(status == "Pending")">Pending</option>
+                                        <option value="Confirmed" selected="@(status == "Confirmed")">Confirmed</option>
+                                        <option value="Completed" selected="@(status == "Completed")">Completed</option>
+                                        <option value="Cancelled" selected="@(status == "Cancelled")">Cancelled</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-lux-save px-3">Save</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" class="text-center py-4" style="color: #94a3b8;">No appointments found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
-
-
-    <!-- APPOINTMENTS -->
-    @if (Model != null && Model.Count > 0)
-    {
-        <div class="row g-4">
-
-            @foreach (var appointment in Model)
-            {
-                <div class="col-12">
-
-                    <div class="card border-0 shadow-sm">
-
-                        <div class="card-body p-4">
-
-                            <!-- TOP SECTION -->
-                            <div class="d-flex justify-content-between align-items-start mb-4">
-
-                                <div>
-                                    <h5 class="fw-bold mb-1">
-                                        Appointment #@appointment.AppointmentId
-                                    </h5>
-
-                                    <small class="text-muted">
-                                        Customer appointment
-                                    </small>
-                                </div>
-
-
-                                <!-- STATUS -->
-                                @if (appointment.Status == "Pending")
-                                {
-                                    <span class="badge bg-warning text-dark px-3 py-2">
-                                        Pending
-                                    </span>
-                                }
-                                else if (appointment.Status == "Confirmed")
-                                {
-                                    <span class="badge bg-success px-3 py-2">
-                                        Confirmed
-                                    </span>
-                                }
-                                else if (appointment.Status == "Completed")
-                                {
-                                    <span class="badge bg-primary px-3 py-2">
-                                        Completed
-                                    </span>
-                                }
-                                else if (appointment.Status == "Cancelled")
-                                {
-                                    <span class="badge bg-danger px-3 py-2">
-                                        Cancelled
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary px-3 py-2">
-                                        @appointment.Status
-                                    </span>
-                                }
-
-                            </div>
-
-
-                            <!-- DETAILS -->
-                            <div class="row g-4">
-
-                                <!-- CUSTOMER -->
-                                <div class="col-md-4">
-
-                                    <div class="bg-light rounded p-3 h-100">
-
-                                        <h6 class="fw-bold mb-3">
-                                            Customer
-                                        </h6>
-
-                                        <div class="mb-2">
-                                            <strong>
-                                                @appointment.CustomerName
-                                            </strong>
-                                        </div>
-
-                                        <div class="text-muted">
-                                            @appointment.CustomerPhone
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-
-                                <!-- SERVICE -->
-                                <div class="col-md-4">
-
-                                    <div class="bg-light rounded p-3 h-100">
-
-                                        <h6 class="fw-bold mb-3">
-                                            Service
-                                        </h6>
-
-                                        <div class="mb-2">
-                                            <strong>
-                                                @appointment.StyleName
-                                            </strong>
-                                        </div>
-
-                                        <div class="text-muted">
-                                            ₹@appointment.Price.ToString("0.00")
-                                            &nbsp; • &nbsp;
-                                            @appointment.Duration min
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-
-                                <!-- BARBER -->
-                                <div class="col-md-4">
-
-                                    <div class="bg-light rounded p-3 h-100">
-
-                                        <h6 class="fw-bold mb-3">
-                                            Barber
-                                        </h6>
-
-                                        <div class="mb-2">
-                                            <strong>
-                                                @appointment.BarberName
-                                            </strong>
-                                        </div>
-
-                                        <div class="text-muted">
-                                            @appointment.Specialization
-                                            •
-                                            @appointment.Experience years
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-
-                                <!-- DATE & TIME -->
-                                <div class="col-md-4">
-
-                                    <div class="border rounded p-3">
-
-                                        <small class="text-muted d-block">
-                                            Date
-                                        </small>
-
-                                        <strong>
-                                            @appointment.AppointmentDate.ToString("dd MMM yyyy")
-                                        </strong>
-
-                                    </div>
-
-                                </div>
-
-
-                                <div class="col-md-4">
-
-                                    <div class="border rounded p-3">
-
-                                        <small class="text-muted d-block">
-                                            Time
-                                        </small>
-
-                                        <strong>
-                                            @DateTime.Today.Add(
-                                            appointment.AppointmentTime
-                                                                        ).ToString("hh:mm tt")
-                                </strong>
-
-                                    </div>
-
-                                </div>
-
-
-                                <!-- STATUS -->
-                                <div class="col-md-4">
-
-                                    <div class="border rounded p-3">
-
-                                        <small class="text-muted d-block">
-                                            Current Status
-                                        </small>
-
-                                        <strong>
-                                            @appointment.Status
-                                        </strong>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- ACTIONS -->
-                            <hr class="my-4" />
-
-                            <div class="d-flex flex-wrap gap-2">
-
-                        @if (appointment.Status == "Pending")
-                                {
-                                    <!-- CONFIRM -->
-                                    <form asp-controller="Admin"
-                                          asp-action="UpdateAppointmentStatus"
-                                          method="post">
-
-                                        @Html.AntiForgeryToken()
-
-                                        <input type="hidden"
-                                               name="appointmentId"
-                                               value="@appointment.AppointmentId" />
-
-                                        <input type="hidden"
-                                               name="status"
-                                               value="Confirmed" />
-
-                                        <button type="submit"
-                                                class="btn btn-success">
-                                            ✓ Confirm Appointment
-                                        </button>
-
-                                    </form>
-
-
-                                    <!-- CANCEL -->
-                                    <form asp-controller="Admin"
-                                          asp-action="UpdateAppointmentStatus"
-                                          method="post">
-
-                                        @Html.AntiForgeryToken()
-
-                                        <input type="hidden"
-                                               name="appointmentId"
-                                               value="@appointment.AppointmentId" />
-
-                                        <input type="hidden"
-                                               name="status"
-                                               value="Cancelled" />
-
-                                        <button type="submit"
-                                                class="btn btn-outline-danger">
-                                            ✕ Cancel
-                                        </button>
-
-                                    </form>
-                                }
-
-
-                                @if (appointment.Status == "Confirmed")
-                                {
-                                    <!-- COMPLETE -->
-                                    <form asp-controller="Admin"
-                                          asp-action="UpdateAppointmentStatus"
-                                          method="post">
-
-                                        @Html.AntiForgeryToken()
-
-                                        <input type="hidden"
-                                               name="appointmentId"
-                                               value="@appointment.AppointmentId" />
-
-                                        <input type="hidden"
-                                               name="status"
-                                               value="Completed" />
-
-                                        <button type="submit"
-                                                class="btn btn-primary">
-                                            ✓ Mark as Completed
-                                        </button>
-
-                                    </form>
-
-
-                                    <!-- CANCEL -->
-                                    <form asp-controller="Admin"
-                                          asp-action="UpdateAppointmentStatus"
-                                          method="post">
-
-                                        @Html.AntiForgeryToken()
-
-                                        <input type="hidden"
-                                               name="appointmentId"
-                                               value="@appointment.AppointmentId" />
-
-                                        <input type="hidden"
-                                               name="status"
-                                               value="Cancelled" />
-
-                                        <button type="submit"
-                                                class="btn btn-outline-danger">
-                                            ✕ Cancel
-                                        </button>
-
-                                    </form>
-                                }
-
-
-                                @if (appointment.Status == "Completed")
-                                {
-                                    <span class="text-muted">
-                                        Appointment completed.
-                                    </span>
-                                }
-
-
-                                @if (appointment.Status == "Cancelled")
-                                {
-                                    <span class="text-muted">
-                                        Appointment cancelled.
-                                    </span>
-                                }
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-            }
-
-        </div>
-    }
-    else
-    {
-        <!-- NO APPOINTMENTS -->
-
-        <div class="card border-0 shadow-sm">
-
-            <div class="card-body text-center py-5">
-
-                <div style="font-size: 50px;">
-                    📅
-                </div>
-
-                <h5 class="fw-bold mt-3">
-                    No Appointments Found
-                </h5>
-
-                <p class="text-muted mb-0">
-                    There are currently no customer appointments.
-                </p>
-
-            </div>
-
-        </div>
-    }
-
 </div>
