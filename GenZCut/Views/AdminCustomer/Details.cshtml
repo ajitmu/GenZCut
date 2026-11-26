@@ -1,0 +1,76 @@
+﻿@model GenZCut.Models.Admin.AdminCustomerViewModel
+
+@{
+    ViewData["Title"] = "Customer Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Customer Details</h2>
+
+        <a asp-controller="AdminCustomer"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Back to Customers
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Customer Information</h5>
+        </div>
+
+        <div class="card-body">
+
+            <dl class="row">
+
+                <dt class="col-sm-4">Customer ID</dt>
+                <dd class="col-sm-8">@Model.Id</dd>
+
+                <dt class="col-sm-4">Customer Name</dt>
+                <dd class="col-sm-8">@Model.CustomerName</dd>
+
+                <dt class="col-sm-4">Email Address</dt>
+                <dd class="col-sm-8">@Model.Email</dd>
+
+                <dt class="col-sm-4">Phone Number</dt>
+                <dd class="col-sm-8">
+                    @(Model.PhoneNumber ?? "Not Available")
+                </dd>
+
+                <dt class="col-sm-4">Registration Date</dt>
+                <dd class="col-sm-8">
+                    @(Model.RegistrationDate?.ToString("dd MMM yyyy") ?? "Not Available")
+                </dd>
+
+                <dt class="col-sm-4">Total Appointments</dt>
+                <dd class="col-sm-8">@Model.TotalAppointments</dd>
+
+                <dt class="col-sm-4">Account Status</dt>
+                <dd class="col-sm-8">
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Inactive</span>
+                    }
+                </dd>
+
+            </dl>
+
+        </div>
+
+        <div class="card-footer bg-white">
+            <a asp-controller="AdminCustomer"
+               asp-action="Index"
+               class="btn btn-secondary">
+                Back
+            </a>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,104 @@
+﻿@model GenZCut.Models.Admin.AdminBarberViewModel
+
+@{
+    ViewData["Title"] = "Barber Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Barber Details</h2>
+
+        <a asp-controller="AdminBarber"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Back to Barbers
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Barber Information</h5>
+        </div>
+
+        <div class="card-body">
+
+            <dl class="row">
+
+                <dt class="col-sm-4">Barber ID</dt>
+                <dd class="col-sm-8">@Model.Id</dd>
+
+                <dt class="col-sm-4">Barber Name</dt>
+                <dd class="col-sm-8">@Model.Name</dd>
+
+                <dt class="col-sm-4">Email</dt>
+                <dd class="col-sm-8">
+                    @(Model.Email ?? "Not Available")
+                </dd>
+
+                <dt class="col-sm-4">Phone Number</dt>
+                <dd class="col-sm-8">
+                    @(Model.PhoneNumber ?? "Not Available")
+                </dd>
+
+                <dt class="col-sm-4">Experience</dt>
+                <dd class="col-sm-8">@Model.Experience years</dd>
+
+                <dt class="col-sm-4">Specialization</dt>
+                <dd class="col-sm-8">
+                    @(Model.Specialization ?? "Not Available")
+                </dd>
+
+                <dt class="col-sm-4">Total Appointments</dt>
+                <dd class="col-sm-8">@Model.TotalAppointments</dd>
+
+                <dt class="col-sm-4">Availability</dt>
+                <dd class="col-sm-8">
+                    @if (Model.IsAvailable)
+                    {
+                        <span class="badge bg-success">Available</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Unavailable</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-4">Account Status</dt>
+                <dd class="col-sm-8">
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Inactive</span>
+                    }
+                </dd>
+
+            </dl>
+
+        </div>
+
+        <div class="card-footer bg-white">
+
+            <a asp-controller="AdminBarber"
+               asp-action="Edit"
+               asp-route-id="@Model.Id"
+               class="btn btn-warning">
+                Edit Barber
+            </a>
+
+            <a asp-controller="AdminBarber"
+               asp-action="Index"
+               class="btn btn-secondary">
+                Back
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

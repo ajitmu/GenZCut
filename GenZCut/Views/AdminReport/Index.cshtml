@@ -1,0 +1,237 @@
+﻿[11/26/2026 7:33 PM] Mohit Kumar Bihar: @model GenZCut.Models.Admin.AdminReportViewModel
+
+@{
+    ViewData["Title"] = "Admin Reports";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Reports & Analytics</h2>
+            <p class="text-muted">Monitor business performance and revenue.</p>
+        </div>
+    </div>
+
+    <!-- Year and Month Filter -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form asp-controller="AdminReport"
+                  asp-action="Index"
+                  method="get"
+                  class="row g-3 align-items-end">
+
+                <div class="col-md-4">
+                    <label class="form-label">Year</label>
+                    <input type="number"
+                           name="year"
+                           value="@Model.SelectedYear"
+                           class="form-control"
+                           min="2020"
+                           max="2100" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Month</label>
+                    <select name="month" class="form-select">
+                        <option value="0">All Months</option>
+                        @for (int i = 1; i <= 12; i++)
+                        {
+                            <option value="@i"
+                                    selected="@(Model.SelectedMonth == i)">
+                                @System.Globalization.CultureInfo
+                                    .CurrentCulture.DateTimeFormat
+                                    .GetMonthName(i)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">
+                        Apply Filter
+                    </button>
+
+                    <a asp-controller="AdminReport"
+                       asp-action="Index"
+                       class="btn btn-secondary">
+                        Reset
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Appointments</h6>
+                    <h3>@Model.TotalAppointments</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Completed Appointments</h6>
+                    <h3 class="text-success">@Model.CompletedAppointments</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Pending Appointments</h6>
+                    <h3 class="text-warning">@Model.PendingAppointments</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Cancelled Appointments</h6>
+                    <h3 class="text-danger">@Model.CancelledAppointments</h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Revenue and Users -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Revenue</h6>
+                    <h3>₹@Model.TotalRevenue.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+[11/26/2026 7:33 PM] Mohit Kumar Bihar: <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Monthly Revenue</h6>
+                    <h3>₹@Model.MonthlyRevenue.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Customers</h6>
+                    <h3>@Model.TotalCustomers</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Barbers</h6>
+                    <h3>@Model.TotalBarbers</h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Monthly Report -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Monthly Performance</h5>
+        </div>
+
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Month</th>
+                        <th>Total Appointments</th>
+                        <th>Completed</th>
+                        <th>Revenue</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.MonthlyReports != null &&
+                         Model.MonthlyReports.Any())
+                    {
+                        @foreach (var item in Model.MonthlyReports)
+                        {
+                            <tr>
+                                <td>@item.MonthName</td>
+                                <td>@item.TotalAppointments</td>
+                                <td>@item.CompletedAppointments</td>
+                                <td>₹@item.Revenue.ToString("N2")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">
+                                No monthly report data available.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Barber Performance -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Barber Performance</h5>
+        </div>
+
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Barber ID</th>
+                        <th>Barber Name</th>
+                        <th>Total Appointments</th>
+                        <th>Completed Appointments</th>
+                        <th>Total Revenue</th>
+                    </tr>
+                </thead>
+[11/26/2026 7:33 PM] Mohit Kumar Bihar: <tbody>
+                    @if (Model.BarberPerformance != null &&
+                         Model.BarberPerformance.Any())
+                    {
+                        @foreach (var barber in Model.BarberPerformance)
+                        {
+                            <tr>
+                                <td>@barber.BarberId</td>
+                                <td>@barber.BarberName</td>
+                                <td>@barber.TotalAppointments</td>
+                                <td>@barber.CompletedAppointments</td>
+                                <td>₹@barber.TotalRevenue.ToString("N2")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No barber performance data available.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

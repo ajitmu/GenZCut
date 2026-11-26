@@ -1,0 +1,178 @@
+﻿@model IEnumerable<GenZCut.Models.Admin.AdminAppointmentViewModel>
+
+@{
+    ViewData["Title"] = "Manage Appointments";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Manage Appointments</h2>
+            <p class="text-muted">View and monitor customer bookings.</p>
+        </div>
+
+        <span class="badge bg-primary fs-6">
+            Total: @(Model?.Count() ?? 0)
+        </span>
+    </div>
+
+    <!-- Filter -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <form asp-controller="AdminAppointment"
+                  asp-action="Index"
+                  method="get"
+                  class="row g-3">
+
+                <div class="col-md-5">
+                    <label class="form-label">Appointment Status</label>
+
+                    <select name="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="col-md-5">
+                    <label class="form-label">Appointment Date</label>
+
+                    <input type="date"
+                           name="date"
+                           class="form-control"
+                           value="@Context.Request.Query["date"]" />
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit"
+                            class="btn btn-primary w-100">
+                        Filter
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Appointment Table -->
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Appointment List</h5>
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Barber</th>
+                        <th>Service</th>
+                        <th>Date</th>
+                        <th>Start Time</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var appointment in Model)
+                        {
+                            <tr>
+                                <td>@appointment.Id</td>
+
+                                <td>
+                                    @appointment.CustomerName
+                                </td>
+
+                                <td>
+                                    @(appointment.BarberName ?? "N/A")
+                                </td>
+
+                                <td>
+                                    @(appointment.ServiceName ?? "N/A")
+                                </td>
+
+                                <td>
+                                    @appointment.AppointmentDate.ToString("dd MMM yyyy")
+                                </td>
+
+                                <td>
+                                    @(appointment.StartTime?.ToString(@"hh\:mm") ?? "N/A")
+                                </td>
+
+                                <td>
+                                    ₹@appointment.Price.ToString("N2")
+                                </td>
+                                <td>
+                                    @switch (appointment.Status)
+                                    {
+                                        case "Pending":
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                            break;
+
+                                        case "Accepted":
+                                            <span class="badge bg-info text-dark">Accepted</span>
+                                            break;
+
+                                        case "Completed":
+                                            <span class="badge bg-success">Completed</span>
+                                            break;
+
+                                        case "Rejected":
+                                            <span class="badge bg-danger">Rejected</span>
+                                            break;
+
+                                        case "Cancelled":
+                                            <span class="badge bg-secondary">Cancelled</span>
+                                            break;
+
+                                        default:
+                                            <span class="badge bg-dark">@appointment.Status</span>
+                                            break;
+                                    }
+                                </td>
+
+                                <td>
+                                    <a asp-controller="AdminAppointment"
+                                       asp-action="Details"
+                                       asp-route-id="@appointment.Id"
+                                       class="btn btn-sm btn-info text-white">
+                                        Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9"
+                                class="text-center text-muted py-4">
+                                No appointments found.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>

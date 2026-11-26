@@ -1,0 +1,135 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@model GenZCut.Models.Admin.AdminDashboardViewModel
+
+<div class="container-fluid py-4">
+
+    <h2 class="mb-4">Admin Dashboard</h2>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4">
+
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 p-3">
+                <h6>Total Customers</h6>
+                <h2>@Model.TotalCustomers</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 p-3">
+                <h6>Total Barbers</h6>
+                <h2>@Model.TotalBarbers</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 p-3">
+                <h6>Total Services</h6>
+                <h2>@Model.TotalServices</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 p-3">
+                <h6>Total Appointments</h6>
+                <h2>@Model.TotalAppointments</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 p-3">
+                <h6>Pending Appointments</h6>
+                <h2>@Model.PendingAppointments</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 p-3">
+                <h6>Completed Appointments</h6>
+                <h2>@Model.CompletedAppointments</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 p-3">
+                <h6>Cancelled Appointments</h6>
+                <h2>@Model.CancelledAppointments</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 p-3">
+                <h6>Total Revenue</h6>
+                <h2>₹@Model.TotalRevenue.ToString("N2")</h2>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Recent Appointments -->
+    <div class="card shadow-sm border-0 mt-5">
+
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Recent Appointments</h5>
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-hover">
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Barber</th>
+                        <th>Service</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.RecentAppointments != null &&
+                                        Model.RecentAppointments.Any())
+                    {
+                        foreach (var item in Model.RecentAppointments)
+                        {
+                            <tr>
+                                <td>@item.AppointmentId</td>
+                                <td>@item.CustomerName</td>
+                                <td>@item.BarberName</td>
+                                <td>@item.ServiceName</td>
+                                <td>
+                                    @item.AppointmentDate.ToString("dd-MM-yyyy")
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        @item.Status
+                                    </span>
+                                </td>
+                                <td>₹@item.Price</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                No appointments found.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>

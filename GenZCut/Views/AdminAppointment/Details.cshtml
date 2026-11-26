@@ -1,0 +1,128 @@
+﻿@model GenZCut.Models.Admin.AdminAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Appointment Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Appointment Details</h2>
+
+        <a asp-controller="AdminAppointment"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Back to Appointments
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                Appointment #@Model.Id
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <h5 class="mb-3">Customer Information</h5>
+
+            <dl class="row">
+                <dt class="col-sm-4">Customer ID</dt>
+                <dd class="col-sm-8">@(Model.CustomerId ?? "N/A")</dd>
+
+                <dt class="col-sm-4">Customer Name</dt>
+                <dd class="col-sm-8">@(Model.CustomerName ?? "N/A")</dd>
+
+                <dt class="col-sm-4">Phone Number</dt>
+                <dd class="col-sm-8">@(Model.CustomerPhone ?? "N/A")</dd>
+
+                <dt class="col-sm-4">Email</dt>
+                <dd class="col-sm-8">@(Model.CustomerEmail ?? "N/A")</dd>
+            </dl>
+
+            <hr />
+
+            <h5 class="mb-3">Booking Information</h5>
+
+            <dl class="row">
+                <dt class="col-sm-4">Appointment ID</dt>
+                <dd class="col-sm-8">@Model.Id</dd>
+
+                <dt class="col-sm-4">Barber Name</dt>
+                <dd class="col-sm-8">@(Model.BarberName ?? "N/A")</dd>
+
+                <dt class="col-sm-4">Service Name</dt>
+                <dd class="col-sm-8">@(Model.ServiceName ?? "N/A")</dd>
+
+                <dt class="col-sm-4">Appointment Date</dt>
+                <dd class="col-sm-8">
+                    @Model.AppointmentDate.ToString("dd MMMM yyyy")
+                </dd>
+
+                <dt class="col-sm-4">Start Time</dt>
+                <dd class="col-sm-8">
+                    @(Model.StartTime?.ToString(@"hh\:mm") ?? "N/A")
+                </dd>
+
+                <dt class="col-sm-4">End Time</dt>
+                <dd class="col-sm-8">
+                    @(Model.EndTime?.ToString(@"hh\:mm") ?? "N/A")
+                </dd>
+
+                <dt class="col-sm-4">Price</dt>
+                <dd class="col-sm-8">
+                    ₹@Model.Price.ToString("N2")
+                </dd>
+
+                <dt class="col-sm-4">Additional Notes</dt>
+                <dd class="col-sm-8">
+                    @(Model.Notes ?? "No additional notes")
+                </dd>
+
+                <dt class="col-sm-4">Booking Status</dt>
+                <dd class="col-sm-8">
+                    @switch (Model.Status)
+                    {
+                        case "Pending":
+                            <span class="badge bg-warning text-dark">Pending</span>
+                            break;
+
+                        case "Accepted":
+                            <span class="badge bg-info text-dark">Accepted</span>
+                            break;
+
+                        case "Completed":
+                            <span class="badge bg-success">Completed</span>
+                            break;
+
+                        case "Rejected":
+                            <span class="badge bg-danger">Rejected</span>
+                            break;
+
+                        case "Cancelled":
+                            <span class="badge bg-secondary">Cancelled</span>
+                            break;
+
+                        default:
+                            <span class="badge bg-dark">@Model.Status</span>
+                            break;
+                    }
+                </dd>
+            </dl>
+
+        </div>
+
+        <div class="card-footer bg-white">
+            <a asp-controller="AdminAppointment"
+               asp-action="Index"
+               class="btn btn-secondary">
+                Back to Appointments
+            </a>
+        </div>
+
+    </div>
+
+</div>

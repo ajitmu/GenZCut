@@ -1,0 +1,136 @@
+﻿@model IEnumerable<GenZCut.Models.Admin.AdminServiceViewModel>
+
+@{
+    ViewData["Title"] = "Manage Services";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Manage Services</h2>
+            <p class="text-muted">View and manage salon services.</p>
+        </div>
+
+        <a asp-controller="AdminService"
+           asp-action="Create"
+           class="btn btn-primary">
+            + Add New Service
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Service List</h5>
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Service Name</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Duration</th>
+                        <th>Barber</th>
+                        <th>Total Bookings</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var service in Model)
+                        {
+                            <tr>
+                                <td>@service.Id</td>
+                                <td>@service.Name</td>
+
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(service.Description)
+                                        ? "N/A"
+                                        : service.Description)
+                                </td>
+
+                                <td>₹@service.Price.ToString("N2")</td>
+
+                                <td>@service.DurationMinutes minutes</td>
+
+                                <td>
+                                    @(service.BarberName ?? "Not Assigned")
+                                </td>
+
+                                <td>@service.TotalBookings</td>
+
+                                <td>
+                                    @if (service.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <div class="d-flex gap-1">
+
+                                        <a asp-controller="AdminService"
+                                           asp-action="Details"
+                                           asp-route-id="@service.Id"
+                                           class="btn btn-sm btn-info text-white">
+                                            Details
+                                        </a>
+
+                                        <a asp-controller="AdminService"
+                                           asp-action="Edit"
+                                           asp-route-id="@service.Id"
+                                           class="btn btn-sm btn-warning">
+                                            Edit
+                                        </a>
+
+                                        <form asp-controller="AdminService"
+                                              asp-action="Delete"
+                                              asp-route-id="@service.Id"
+                                              method="post"
+                                              onsubmit="return confirm('Are you sure you want to delete this service?');">
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-danger">
+                                                Delete
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9"
+                                class="text-center text-muted py-4">
+                                No services found.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>
