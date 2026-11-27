@@ -38,4 +38,17 @@
         public int Rating { get; set; }
         public string Comment { get; set; } = string.Empty;
     }
+
+    public class AdminBarberRowViewModel
+    {
+        public int BarberId { get; set; }
+        public int UserId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public int Experience { get; set; }
+        public string Specialization { get; set; } = string.Empty;
+        public string Status { get; set; } = "Active";
+        public int TotalAppointments { get; set; }
+    }
 }

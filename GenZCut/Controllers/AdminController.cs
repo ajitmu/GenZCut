@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using GenZCut.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using System.Data;
 
 namespace GenZCut.Controllers
 {
@@ -61,7 +61,6 @@ namespace GenZCut.Controllers
             {
                 conn.Open();
 
-                // 1) Check dbo.Users where Role = 'Admin'
                 string userQuery = @"
                     SELECT TOP 1 UserId, FullName, Email, Password
                     FROM dbo.Users
@@ -94,7 +93,6 @@ namespace GenZCut.Controllers
                     }
                 }
 
-                // 2) Fallback: Check dbo.Admins if table exists
                 string adminQuery = @"
                     SELECT TOP 1 Email, Password
                     FROM dbo.Admins
@@ -125,7 +123,6 @@ namespace GenZCut.Controllers
                     }
                     catch (SqlException)
                     {
-                        // Agar dbo.Admins table nahi hai to ignore karke invalid credentials dikhayega
                     }
                 }
             }
@@ -152,22 +149,49 @@ namespace GenZCut.Controllers
         {
             if (!IsLoggedIn()) return RedirectToAction("Login");
 
+            var vm = new AdminDashboardViewModel
+            {
+                AdminEmail = HttpContext.Session.GetString("AdminEmail")
+                    ?? HttpContext.Session.GetString("UserName")
+                    ?? "Admin"
+            };
+
             using (SqlConnection conn = new SqlConnection(GetConnectionString()))
             {
                 conn.Open();
-                ViewBag.AdminEmail = HttpContext.Session.GetString("AdminEmail")
-                    ?? HttpContext.Session.GetString("UserName")
-                    ?? "Admin";
-                ViewBag.TotalCustomers = GetCount(conn, "SELECT COUNT(*) FROM dbo.Customers");
-                ViewBag.TotalBarbers = GetCount(conn, "SELECT COUNT(*) FROM dbo.Barbers");
-                ViewBag.TotalHairstyles = GetCount(conn, "SELECT COUNT(*) FROM dbo.Hairstyles");
-                ViewBag.TotalAppointments = GetCount(conn, "SELECT COUNT(*) FROM dbo.Appointments");
-                ViewBag.PendingAppointments = GetCount(conn, "SELECT COUNT(*) FROM dbo.Appointments WHERE ISNULL(Status, 'Pending') = 'Pending'");
 
-                DataTable dtRecent = new DataTable();
+                vm.TotalCustomers = GetCount(conn, "SELECT COUNT(*) FROM dbo.Customers");
+                vm.TotalBarbers = GetCount(conn, "SELECT COUNT(*) FROM dbo.Barbers");
+                vm.ActiveBarbers = GetCount(conn, "SELECT COUNT(*) FROM dbo.Barbers WHERE Status = 'Active'");
+                vm.TotalHairstyles = GetCount(conn, "SELECT COUNT(*) FROM dbo.Hairstyles");
+                vm.TotalAppointments = GetCount(conn, "SELECT COUNT(*) FROM dbo.Appointments");
+                vm.PendingAppointments = GetCount(conn, "SELECT COUNT(*) FROM dbo.Appointments WHERE ISNULL(Status, 'Pending') = 'Pending'");
+                vm.ConfirmedAppointments = GetCount(conn, "SELECT COUNT(*) FROM dbo.Appointments WHERE Status = 'Confirmed'");
+                vm.CompletedAppointments = GetCount(conn, "SELECT COUNT(*) FROM dbo.Appointments WHERE Status = 'Completed'");
+
+                vm.CompletedRevenue = GetDecimal(conn, @"
+                    SELECT ISNULL(SUM(h.Price), 0)
+                    FROM dbo.Appointments a
+                    INNER JOIN dbo.Hairstyles h ON a.StyleId = h.StyleId
+                    WHERE a.Status = 'Completed'");
+
+                vm.ProjectedRevenue = GetDecimal(conn, @"
+                    SELECT ISNULL(SUM(h.Price), 0)
+                    FROM dbo.Appointments a
+                    INNER JOIN dbo.Hairstyles h ON a.StyleId = h.StyleId
+                    WHERE ISNULL(a.Status, 'Pending') IN ('Pending', 'Confirmed', 'Completed')");
+
                 string recentQuery = @"
-                    SELECT TOP 8 a.AppointmentId, uC.FullName AS CustomerName, uB.FullName AS BarberName,
-                           h.StyleName, a.AppointmentDate, a.AppointmentTime, ISNULL(a.Status, 'Pending') AS Status
+                    SELECT TOP 8
+                        a.AppointmentId,
+                        uC.FullName AS CustomerName,
+                        ISNULL(uC.Phone, '') AS CustomerPhone,
+                        uB.FullName AS BarberName,
+                        h.StyleName,
+                        ISNULL(h.Price, 0) AS Price,
+                        a.AppointmentDate,
+                        a.AppointmentTime,
+                        ISNULL(a.Status, 'Pending') AS Status
                     FROM dbo.Appointments a
                     JOIN dbo.Customers c ON a.CustomerId = c.CustomerId
                     JOIN dbo.Users uC ON c.UserId = uC.UserId
@@ -176,27 +200,166 @@ namespace GenZCut.Controllers
                     JOIN dbo.Hairstyles h ON a.StyleId = h.StyleId
                     ORDER BY a.AppointmentId DESC";
 
-                using (SqlDataAdapter da = new SqlDataAdapter(recentQuery, conn))
+                using (SqlCommand cmd = new SqlCommand(recentQuery, conn))
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    da.Fill(dtRecent);
+                    while (reader.Read())
+                    {
+                        vm.RecentAppointments.Add(new AdminAppointmentRowViewModel
+                        {
+                            AppointmentId = Convert.ToInt32(reader["AppointmentId"]),
+                            CustomerName = reader["CustomerName"]?.ToString() ?? "",
+                            CustomerPhone = reader["CustomerPhone"]?.ToString() ?? "",
+                            BarberName = reader["BarberName"]?.ToString() ?? "",
+                            StyleName = reader["StyleName"]?.ToString() ?? "",
+                            Price = reader["Price"] == DBNull.Value ? 0m : Convert.ToDecimal(reader["Price"]),
+                            AppointmentDate = reader["AppointmentDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(reader["AppointmentDate"]),
+                            AppointmentTime = reader["AppointmentTime"] == DBNull.Value
+                                ? TimeSpan.Zero
+                                : reader["AppointmentTime"] is TimeSpan ts
+                                    ? ts
+                                    : TimeSpan.TryParse(reader["AppointmentTime"].ToString(), out TimeSpan parsed) ? parsed : TimeSpan.Zero,
+                            Status = reader["Status"]?.ToString() ?? "Pending"
+                        });
+                    }
                 }
 
-                return View(dtRecent);
+                try
+                {
+                    string feedbackQuery = @"
+                        SELECT TOP 4
+                            f.FeedbackId,
+                            ISNULL(uC.FullName, 'Customer') AS CustomerName,
+                            ISNULL(uB.FullName, 'Barber') AS BarberName,
+                            ISNULL(f.Rating, 5) AS Rating,
+                            ISNULL(f.Comment, '') AS Comment
+                        FROM dbo.Feedback f
+                        LEFT JOIN dbo.Customers c ON f.CustomerId = c.CustomerId
+                        LEFT JOIN dbo.Users uC ON c.UserId = uC.UserId
+                        LEFT JOIN dbo.Barbers b ON f.BarberId = b.BarberId
+                        LEFT JOIN dbo.Users uB ON b.UserId = uB.UserId
+                        ORDER BY f.FeedbackId DESC";
+
+                    using (SqlCommand fbCmd = new SqlCommand(feedbackQuery, conn))
+                    using (SqlDataReader fbReader = fbCmd.ExecuteReader())
+                    {
+                        while (fbReader.Read())
+                        {
+                            vm.RecentFeedback.Add(new AdminFeedbackRowViewModel
+                            {
+                                FeedbackId = Convert.ToInt32(fbReader["FeedbackId"]),
+                                CustomerName = fbReader["CustomerName"]?.ToString() ?? "Customer",
+                                BarberName = fbReader["BarberName"]?.ToString() ?? "Barber",
+                                Rating = fbReader["Rating"] == DBNull.Value ? 5 : Convert.ToInt32(fbReader["Rating"]),
+                                Comment = fbReader["Comment"]?.ToString() ?? ""
+                            });
+                        }
+                    }
+                }
+                catch (SqlException)
+                {
+                }
             }
+
+            return View(vm);
         }
 
-        // 3. Appointments Management
+        // 3. Barbers Management
+        public IActionResult Barbers()
+        {
+            if (!IsLoggedIn()) return RedirectToAction("Login");
+
+            var barbers = new List<AdminBarberRowViewModel>();
+            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
+            {
+                string query = @"
+                    SELECT
+                        b.BarberId,
+                        b.UserId,
+                        ISNULL(u.FullName, '') AS FullName,
+                        ISNULL(u.Email, '') AS Email,
+                        ISNULL(u.Phone, '') AS Phone,
+                        ISNULL(b.Experience, 0) AS Experience,
+                        ISNULL(b.Specialization, '') AS Specialization,
+                        ISNULL(b.Status, 'Inactive') AS Status,
+                        (SELECT COUNT(*) FROM dbo.Appointments a WHERE a.BarberId = b.BarberId) AS TotalAppointments
+                    FROM dbo.Barbers b
+                    INNER JOIN dbo.Users u ON b.UserId = u.UserId
+                    WHERE u.Role = 'Barber'
+                    ORDER BY b.BarberId DESC";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            barbers.Add(new AdminBarberRowViewModel
+                            {
+                                BarberId = Convert.ToInt32(reader["BarberId"]),
+                                UserId = Convert.ToInt32(reader["UserId"]),
+                                FullName = reader["FullName"]?.ToString() ?? "",
+                                Email = reader["Email"]?.ToString() ?? "",
+                                Phone = reader["Phone"]?.ToString() ?? "",
+                                Experience = reader["Experience"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Experience"]),
+                                Specialization = reader["Specialization"]?.ToString() ?? "",
+                                Status = reader["Status"]?.ToString() ?? "Inactive",
+                                TotalAppointments = reader["TotalAppointments"] == DBNull.Value ? 0 : Convert.ToInt32(reader["TotalAppointments"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return View(barbers);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ToggleBarberStatus(int barberId, string newStatus)
+        {
+            if (!IsLoggedIn()) return RedirectToAction("Login");
+
+            string cleanStatus = string.Equals(newStatus, "Active", StringComparison.OrdinalIgnoreCase)
+                ? "Active"
+                : "Inactive";
+
+            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
+            {
+                string query = "UPDATE dbo.Barbers SET Status = @Status WHERE BarberId = @BarberId";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Status", cleanStatus);
+                    cmd.Parameters.AddWithValue("@BarberId", barberId);
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            TempData["Success"] = $"Barber status updated to {cleanStatus}.";
+            return RedirectToAction("Barbers");
+        }
+
+        // 4. Appointments Management
         public IActionResult Appointments()
         {
             if (!IsLoggedIn()) return RedirectToAction("Login");
 
-            DataTable dt = new DataTable();
+            var appointments = new List<AdminAppointmentRowViewModel>();
             using (SqlConnection conn = new SqlConnection(GetConnectionString()))
             {
                 string query = @"
-                    SELECT a.AppointmentId, uC.FullName AS CustomerName, uC.Phone,
-                           uB.FullName AS BarberName, h.StyleName, h.Price,
-                           a.AppointmentDate, a.AppointmentTime, ISNULL(a.Status, 'Pending') AS Status
+                    SELECT
+                        a.AppointmentId,
+                        uC.FullName AS CustomerName,
+                        ISNULL(uC.Phone, '') AS CustomerPhone,
+                        uB.FullName AS BarberName,
+                        h.StyleName,
+                        ISNULL(h.Price, 0) AS Price,
+                        a.AppointmentDate,
+                        a.AppointmentTime,
+                        ISNULL(a.Status, 'Pending') AS Status
                     FROM dbo.Appointments a
                     JOIN dbo.Customers c ON a.CustomerId = c.CustomerId
                     JOIN dbo.Users uC ON c.UserId = uC.UserId
@@ -205,13 +368,35 @@ namespace GenZCut.Controllers
                     JOIN dbo.Hairstyles h ON a.StyleId = h.StyleId
                     ORDER BY a.AppointmentId DESC";
 
-                using (SqlDataAdapter da = new SqlDataAdapter(query, conn))
+                using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    da.Fill(dt);
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            appointments.Add(new AdminAppointmentRowViewModel
+                            {
+                                AppointmentId = Convert.ToInt32(reader["AppointmentId"]),
+                                CustomerName = reader["CustomerName"]?.ToString() ?? "",
+                                CustomerPhone = reader["CustomerPhone"]?.ToString() ?? "",
+                                BarberName = reader["BarberName"]?.ToString() ?? "",
+                                StyleName = reader["StyleName"]?.ToString() ?? "",
+                                Price = reader["Price"] == DBNull.Value ? 0m : Convert.ToDecimal(reader["Price"]),
+                                AppointmentDate = reader["AppointmentDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(reader["AppointmentDate"]),
+                                AppointmentTime = reader["AppointmentTime"] == DBNull.Value
+                                    ? TimeSpan.Zero
+                                    : reader["AppointmentTime"] is TimeSpan ts
+                                        ? ts
+                                        : TimeSpan.TryParse(reader["AppointmentTime"].ToString(), out TimeSpan parsed) ? parsed : TimeSpan.Zero,
+                                Status = reader["Status"]?.ToString() ?? "Pending"
+                            });
+                        }
+                    }
                 }
             }
 
-            return View(dt);
+            return View(appointments);
         }
 
         [HttpPost]
@@ -239,6 +424,15 @@ namespace GenZCut.Controllers
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            }
+        }
+
+        private static decimal GetDecimal(SqlConnection conn, string sql)
+        {
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                object? val = cmd.ExecuteScalar();
+                return val == null || val == DBNull.Value ? 0m : Convert.ToDecimal(val);
             }
         }
     }

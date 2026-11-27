@@ -1,57 +1,101 @@
-﻿@* Views/Admin/Barbers.cshtml *@
-@model GenZCut.Models.AdminBarbersViewModel
+﻿@model List<GenZCut.Models.AdminBarberRowViewModel>
+
 @{
-    ViewData["Title"] = "Barbers Team";
-    Layout = "_AdminLayout";
+    ViewData["Title"] = "Barbers Management";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
 }
 
-<h2 class="fw-bold mb-3"><i class="bi bi-scissors text-warning me-2"></i>Stylists & Barbers Roster</h2>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h2 class="fw-bold mb-0">Barbers Directory</h2>
+        <small class="text-secondary">Control active status and view stylist workload</small>
+    </div>
+    <a asp-action="Dashboard" class="btn btn-outline-light btn-sm px-3">
+        ← Back to Dashboard
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <div class="glass-card overflow-hidden">
     <div class="table-responsive">
-        <table class="table table-pro">
+        <table class="table table-dark table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Stylist</th>
-                    <th>Phone</th>
-                    <th>Completed</th>
-                    <th>Exp (Yrs)</th>
+                    <th>Barber Name</th>
+                    <th>Contact</th>
                     <th>Specialization</th>
+                    <th>Experience</th>
+                    <th>Bookings</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th class="text-end">Action</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var b in Model.Barbers)
+                @if (Model != null && Model.Count > 0)
+                {
+                    foreach (var barber in Model)
+                    {
+                        bool isActive = string.Equals(barber.Status, "Active", StringComparison.OrdinalIgnoreCase);
+                        string badgeClass = isActive ? "bg-success text-white" : "bg-secondary text-white";
+
+                        <tr>
+                            <td>#@barber.BarberId</td>
+                            <td class="fw-semibold">@barber.FullName</td>
+                            <td>
+                                <div>@barber.Email</div>
+                                @if (!string.IsNullOrWhiteSpace(barber.Phone))
+                                {
+                                    <small class="text-secondary">@barber.Phone</small>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(barber.Specialization))
+                                {
+                                    <span class="badge bg-info text-dark">@barber.Specialization</span>
+                                }
+                                else
+                                {
+                                    <span class="text-secondary small">Not set</span>
+                                }
+                            </td>
+                            <td>@(barber.Experience > 0 ? $"{barber.Experience} yrs" : "—")</td>
+                            <td><span class="fw-semibold">@barber.TotalAppointments</span></td>
+                            <td><span class="badge @badgeClass">@barber.Status</span></td>
+                            <td class="text-end">
+                                <form asp-action="ToggleBarberStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="barberId" value="@barber.BarberId" />
+                                    @if (isActive)
+                                    {
+                                        <input type="hidden" name="newStatus" value="Inactive" />
+                                        <button type="submit" class="btn btn-sm btn-outline-warning">
+                                            Set Inactive
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <input type="hidden" name="newStatus" value="Active" />
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            Set Active
+                                        </button>
+                                    }
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td class="text-secondary">#@b.BarberId</td>
-                        <td>
-                            <div class="fw-bold text-light">@b.FullName</div>
-                            <div class="small text-secondary">@b.Email</div>
-                        </td>
-                        <td>@b.Phone</td>
-                        <td><span class="badge bg-info text-dark rounded-pill px-3">@b.CompletedBookings Cuts</span></td>
-                        <form asp-action="UpdateBarberProfile" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="barberId" value="@b.BarberId" />
-                        <td style="width: 95px;">
-                            <input type="number" name="experience" value="@b.Experience" min="0" max="50" class="form-control form-control-sm form-control-dark" />
-                        </td>
-                        <td style="width: 200px;">
-                            <input type="text" name="specialization" value="@b.Specialization" class="form-control form-control-sm form-control-dark" />
-                        </td>
-                        <td style="width: 125px;">
-                            <select name="status" class="form-select form-select-sm form-select-dark">
-                                <option value="Active" selected="@(b.Status == "Active")">Active</option>
-                                <option value="Inactive" selected="@(b.Status == "Inactive")">Inactive</option>
-                            </select>
-                        </td>
-                        <td>
-                            <button type="submit" class="btn btn-sm btn-gradient px-3">Update</button>
-                        </td>
-                        </form>
+                        <td colspan="8" class="text-center text-secondary py-4">No barbers registered yet.</td>
                     </tr>
                 }
             </tbody>

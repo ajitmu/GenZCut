@@ -60,6 +60,10 @@
             background: linear-gradient(135deg, #ec4899, #be185d);
         }
 
+        .kpi-emerald {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
         .btn-gradient {
             background: linear-gradient(135deg, #f59e0b, #ec4899);
             border: none;
@@ -74,19 +78,27 @@
     </style>
 </head>
 <body>
+    @{
+        string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    }
+
     <div class="container-fluid">
         <div class="row">
             <aside class="col-md-3 col-lg-2 admin-sidebar p-3 d-flex flex-column justify-content-between">
                 <div>
                     <div class="fs-4 fw-bold mb-4 px-2 text-warning">✂️ GenZCut Admin</div>
                     <nav class="nav flex-column">
-                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")"
+                        <a class="nav-link @(currentAction == "Dashboard" ? "active" : "")"
                            asp-controller="Admin" asp-action="Dashboard">
                             <i class="bi bi-grid-1x2-fill me-2"></i>Dashboard
                         </a>
-                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Appointments" ? "active" : "")"
+                        <a class="nav-link @(currentAction == "Appointments" ? "active" : "")"
                            asp-controller="Admin" asp-action="Appointments">
                             <i class="bi bi-calendar2-check-fill me-2"></i>Appointments
+                        </a>
+                        <a class="nav-link @(currentAction == "Barbers" ? "active" : "")"
+                           asp-controller="Admin" asp-action="Barbers">
+                            <i class="bi bi-scissors me-2"></i>Barbers
                         </a>
                     </nav>
                 </div>
@@ -104,5 +116,6 @@
     </div>
 
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

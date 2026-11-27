@@ -1,54 +1,85 @@
-﻿@using System.Data
-@model DataTable
+﻿@model GenZCut.Models.AdminDashboardViewModel
+@using System.Globalization
+
 @{
     ViewData["Title"] = "Dashboard";
     Layout = "~/Views/Admin/_AdminLayout.cshtml";
 }
 
+<style>
+    .kpi-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff;
+    }
+
+    .revenue-strip {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 14px 20px;
+    }
+</style>
+
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
     <div>
         <h2 class="fw-bold mb-0">Studio Overview <span class="badge bg-warning text-dark fs-6 ms-1">LIVE</span></h2>
-        <small class="text-secondary">Logged in: <span class="text-info">@ViewBag.AdminEmail</span></small>
+        <small class="text-secondary">Logged in: <span class="text-info">@Model.AdminEmail</span></small>
     </div>
     <a asp-action="Appointments" class="btn btn-gradient px-3">
         <i class="bi bi-calendar-check me-1"></i>All Appointments
     </a>
 </div>
 
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-3">
     <div class="col-sm-6 col-xl">
         <div class="kpi-card kpi-gold">
             <div class="small text-uppercase opacity-75">Customers</div>
-            <h2 class="fw-bold mb-0 mt-1">@(ViewBag.TotalCustomers ?? 0)</h2>
+            <h2 class="fw-bold mb-0 mt-1">@Model.TotalCustomers</h2>
         </div>
     </div>
     <div class="col-sm-6 col-xl">
         <div class="kpi-card kpi-purple">
             <div class="small text-uppercase opacity-75">Barbers</div>
-            <h2 class="fw-bold mb-0 mt-1">@(ViewBag.TotalBarbers ?? 0)</h2>
+            <h2 class="fw-bold mb-0 mt-1">@Model.TotalBarbers</h2>
+            <small class="opacity-75">@Model.ActiveBarbers active</small>
         </div>
     </div>
     <div class="col-sm-6 col-xl">
         <div class="kpi-card kpi-cyan">
             <div class="small text-uppercase opacity-75">Hairstyles</div>
-            <h2 class="fw-bold mb-0 mt-1">@(ViewBag.TotalHairstyles ?? 0)</h2>
+            <h2 class="fw-bold mb-0 mt-1">@Model.TotalHairstyles</h2>
         </div>
     </div>
     <div class="col-sm-6 col-xl">
         <div class="kpi-card kpi-pink">
             <div class="small text-uppercase opacity-75">Appointments</div>
-            <h2 class="fw-bold mb-0 mt-1">@(ViewBag.TotalAppointments ?? 0)</h2>
+            <h2 class="fw-bold mb-0 mt-1">@Model.TotalAppointments</h2>
+            <small class="opacity-75">@Model.ConfirmedAppointments confirmed</small>
         </div>
     </div>
     <div class="col-sm-6 col-xl">
-        <div class="kpi-card kpi-gold">
+        <div class="kpi-card kpi-emerald">
             <div class="small text-uppercase opacity-75">Pending</div>
-            <h2 class="fw-bold mb-0 mt-1">@(ViewBag.PendingAppointments ?? 0)</h2>
+            <h2 class="fw-bold mb-0 mt-1">@Model.PendingAppointments</h2>
+            <small class="opacity-75">@Model.CompletedAppointments completed</small>
         </div>
     </div>
 </div>
 
-<div class="glass-card overflow-hidden">
+<!-- REVENUE SUMMARY -->
+<div class="revenue-strip d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <span class="text-secondary small text-uppercase fw-semibold">Completed Revenue:</span>
+        <span class="fs-5 fw-bold text-success ms-2">₹@Model.CompletedRevenue.ToString("N0")</span>
+    </div>
+    <div>
+        <span class="text-secondary small text-uppercase fw-semibold">Projected Pipeline (Pending + Confirmed + Completed):</span>
+        <span class="fs-5 fw-bold text-info ms-2">₹@Model.ProjectedRevenue.ToString("N0")</span>
+    </div>
+</div>
+
+<!-- RECENT APPOINTMENTS TABLE -->
+<div class="glass-card overflow-hidden mb-4">
     <div class="p-3 px-4 border-bottom border-secondary border-opacity-25 fw-bold">
         Recent Appointments
     </div>
@@ -60,34 +91,71 @@
                     <th>Customer</th>
                     <th>Barber</th>
                     <th>Style</th>
+                    <th>Price</th>
                     <th>Date</th>
                     <th>Time</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody>
-                @if (Model != null && Model.Rows.Count > 0)
+                @if (Model.RecentAppointments != null && Model.RecentAppointments.Count > 0)
                 {
-                    foreach (DataRow row in Model.Rows)
+                    foreach (var row in Model.RecentAppointments)
                     {
+                        string status = string.IsNullOrWhiteSpace(row.Status) ? "Pending" : row.Status;
+                        string statusBadgeClass = status.ToLowerInvariant() switch
+                        {
+                            "confirmed" => "bg-success text-white",
+                            "completed" => "bg-primary text-white",
+                            "rejected" or "cancelled" => "bg-danger text-white",
+                            _ => "bg-warning text-dark"
+                        };
+
+                        string formattedTime = DateTime.Today.Add(row.AppointmentTime).ToString("hh:mm tt", CultureInfo.InvariantCulture);
+                        string formattedDate = row.AppointmentDate == DateTime.MinValue
+                        ? ""
+                        : row.AppointmentDate.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+
                         <tr>
-                            <td>#@row["AppointmentId"]</td>
-                            <td class="fw-semibold">@row["CustomerName"]</td>
-                            <td>@row["BarberName"]</td>
-                            <td><span class="badge bg-info text-dark">@row["StyleName"]</span></td>
-                            <td>@Convert.ToDateTime(row["AppointmentDate"]).ToString("dd MMM yyyy")</td>
-                            <td>@row["AppointmentTime"]</td>
-                            <td><span class="badge bg-warning text-dark">@row["Status"]</span></td>
+                            <td>#@row.AppointmentId</td>
+                            <td class="fw-semibold">@row.CustomerName</td>
+                            <td>@row.BarberName</td>
+                            <td><span class="badge bg-info text-dark">@row.StyleName</span></td>
+                            <td>₹@row.Price.ToString("0.##")</td>
+                            <td>@formattedDate</td>
+                            <td>@formattedTime</td>
+                            <td><span class="badge @statusBadgeClass">@status</span></td>
                         </tr>
                     }
                 }
                 else
                 {
                     <tr>
-                        <td colspan="7" class="text-center text-secondary py-4">No appointments found.</td>
+                        <td colspan="8" class="text-center text-secondary py-4">No appointments found.</td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
 </div>
+
+@if (Model.RecentFeedback != null && Model.RecentFeedback.Count > 0)
+{
+    <div class="glass-card p-3 px-4">
+        <div class="fw-bold mb-3">Recent Customer Feedback</div>
+        <div class="row g-3">
+            @foreach (var fb in Model.RecentFeedback)
+            {
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark bg-opacity-50 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-semibold">@fb.CustomerName <span class="text-secondary small">→ @fb.BarberName</span></span>
+                            <span class="badge bg-warning text-dark">★ @fb.Rating/5</span>
+                        </div>
+                        <p class="small text-secondary mb-0">@fb.Comment</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
