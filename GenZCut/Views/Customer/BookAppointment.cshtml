@@ -1,265 +1,231 @@
 ﻿@model GenZCut.Models.Appointment
+@using GenZCut.Models
 
 @{
-    ViewData["Title"] = "Book Appointment";
+    ViewData["Title"] = "Book an Appointment";
+    var hairstyles = ViewBag.Hairstyles as List<Hairstyle> ?? new List<Hairstyle>();
+    var barbers = ViewBag.Barbers as List<Barber> ?? new List<Barber>();
+    var todayStr = DateTime.Today.ToString("yyyy-MM-dd");
 }
 
 <style>
-    body {
-        background: #f6f6f4;
-    }
-
-    .booking-wrapper {
-        max-width: 900px;
-        margin: 40px auto;
-        padding: 0 20px;
+    .booking-page {
+        min-height: 85vh;
+        background: #f7f7f5;
+        padding: 45px 16px 75px;
     }
 
     .booking-card {
-        background: white;
-        border: 1px solid #e5e5e5;
-        border-radius: 18px;
-        padding: 35px;
-        box-shadow: 0 10px 30px rgba(0,0,0,.06);
+        max-width: 720px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #eaeaea;
+        border-radius: 22px;
+        padding: 40px 38px;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.05);
     }
 
-    .booking-header {
-        margin-bottom: 30px;
+    .booking-title {
+        font-size: 30px;
+        font-weight: 800;
+        color: #171717;
+        margin-bottom: 6px;
+        letter-spacing: -0.4px;
     }
 
-        .booking-header h1 {
-            font-size: 30px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
+    .booking-subtitle {
+        color: #777777;
+        font-size: 14px;
+        margin-bottom: 28px;
+    }
 
-        .booking-header p {
-            color: #777;
-            margin: 0;
-        }
-
-    .form-label {
+    .booking-card .form-label {
+        font-size: 13.5px;
         font-weight: 600;
-        margin-bottom: 7px;
+        color: #222222;
+        margin-bottom: 6px;
     }
 
-    .form-control,
-    .form-select {
-        height: 48px;
-        border-radius: 9px;
+    .booking-card .form-control,
+    .booking-card .form-select {
+        padding: 12px 14px;
+        border-radius: 10px;
         border: 1px solid #dcdcdc;
+        font-size: 14px;
+        color: #171717;
     }
 
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #111;
-            box-shadow: 0 0 0 3px rgba(0,0,0,.08);
+        .booking-card .form-control:focus,
+        .booking-card .form-select:focus {
+            border-color: #171717;
+            box-shadow: 0 0 0 0.15rem rgba(23, 23, 23, 0.12);
         }
 
-    .validation {
-        color: #c0392b;
-        font-size: 13px;
-        margin-top: 5px;
-        display: block;
-    }
-
-    .booking-btn {
+    .btn-confirm-booking {
         width: 100%;
-        height: 50px;
-        border: none;
-        border-radius: 9px;
         background: #171717;
-        color: white;
+        color: #ffffff;
+        border: none;
+        border-radius: 10px;
+        padding: 14px 20px;
+        font-size: 15px;
         font-weight: 600;
-        margin-top: 15px;
+        transition: background-color 0.2s ease, color 0.2s ease;
     }
 
-        .booking-btn:hover {
+        .btn-confirm-booking:hover {
             background: #c9a227;
-            color: #111;
+            color: #111111;
         }
 
-    .back-link {
+    .back-dashboard-link {
         display: inline-block;
         margin-top: 18px;
-        color: #555;
-        text-decoration: none;
+        font-size: 13.5px;
         font-weight: 600;
+        color: #555555;
+        text-decoration: none;
     }
 
-        .back-link:hover {
-            color: #a17c08;
+        .back-dashboard-link:hover {
+            color: #171717;
+            text-decoration: underline;
         }
 </style>
 
-
-<div class="booking-wrapper">
-
+<div class="booking-page">
     <div class="booking-card">
+        <h1 class="booking-title">Book an Appointment</h1>
+        <p class="booking-subtitle">Choose your preferred service, barber, date and time.</p>
 
-        <div class="booking-header">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small rounded-3"></div>
 
-            <h1>Book an Appointment</h1>
-
-            <p>
-                Choose your preferred service, barber, date and time.
-            </p>
-
-        </div>
-
-
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div asp-validation-summary="ModelOnly"
-                 class="alert alert-danger">
-            </div>
-        }
-
-
-        <form asp-controller="Customer"
-              asp-action="BookAppointment"
-              method="post">
-
+        <form asp-controller="Customer" asp-action="BookAppointment" method="post" id="appointmentForm">
             @Html.AntiForgeryToken()
 
-
-            <!-- SERVICE -->
-
-            <div class="mb-4">
-
-                <label for="StyleId"
-                       class="form-label">
-                    Select Service
-                </label>
-
-                <select asp-for="StyleId"
-                        class="form-select">
-
-                    <option value="">
-                        -- Select a Service --
-                    </option>
-
-                    @if (ViewBag.Hairstyles != null)
+            <!-- SELECT SERVICE -->
+            <div class="mb-3">
+                <label asp-for="StyleId" class="form-label">Select Service</label>
+                <select asp-for="StyleId" class="form-select">
+                    <option value="">-- Select a Service --</option>
+                    @foreach (var style in hairstyles)
                     {
-                        foreach (var style in ViewBag.Hairstyles)
-                        {
-                            <option value="@style.StyleId">
-                                @style.StyleName - ₹@style.Price
-                            </option>
-                        }
+                        <option value="@style.StyleId">
+                            @style.StyleName (@style.Duration mins - ₹@style.Price.ToString("0.##"))
+                        </option>
                     }
-
                 </select>
-
-                <span asp-validation-for="StyleId"
-                      class="validation">
-                </span>
-
+                <span asp-validation-for="StyleId" class="text-danger small"></span>
             </div>
 
-
-            <!-- BARBER -->
-
-            <div class="mb-4">
-
-                <label for="BarberId"
-                       class="form-label">
-                    Select Barber
-                </label>
-
-                <select asp-for="BarberId"
-                        class="form-select">
-
-                    <option value="">
-                        -- Select a Barber --
-                    </option>
-
-                    @if (ViewBag.Barbers != null)
+            <!-- SELECT REGISTERED & AVAILABLE BARBER -->
+            <div class="mb-3">
+                <label asp-for="BarberId" class="form-label">Select Barber</label>
+                <select asp-for="BarberId" class="form-select">
+                    <option value="">-- Select a Barber --</option>
+                    @foreach (var barber in barbers)
                     {
-                        foreach (var barber in ViewBag.Barbers)
-                        {
-                            <option value="@barber.BarberId">
-                                @barber.Specialization
-                                (@barber.Experience years experience)
-                            </option>
-                        }
+                        var barberDisplayName = string.IsNullOrWhiteSpace(barber.FullName)
+                        ? $"Barber #{barber.BarberId}"
+                        : barber.FullName.Trim();
+
+                        var details = !string.IsNullOrWhiteSpace(barber.Specialization)
+                        ? $" ({barber.Specialization.Trim()})"
+                        : barber.Experience > 0
+                        ? $" ({barber.Experience} yrs exp)"
+                        : "";
+
+                        <option value="@barber.BarberId">@barberDisplayName@details</option>
                     }
-
                 </select>
-
-                <span asp-validation-for="BarberId"
-                      class="validation">
-                </span>
-
+                @if (!barbers.Any())
+                {
+                    <div class="form-text text-danger">Abhi koi available barber nahi hai.</div>
+                }
+                <span asp-validation-for="BarberId" class="text-danger small"></span>
             </div>
 
-
-            <div class="row">
-
-
-                <!-- DATE -->
-
-                <div class="col-md-6 mb-4">
-
-                    <label for="AppointmentDate"
-                           class="form-label">
-                        Appointment Date
-                    </label>
-
+            <!-- DATE & TIME -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="AppointmentDate" class="form-label">Appointment Date</label>
                     <input asp-for="AppointmentDate"
                            type="date"
-                           class="form-control"
-                           min="@DateTime.Today.ToString("yyyy-MM-dd")" />
-
-                    <span asp-validation-for="AppointmentDate"
-                          class="validation">
-                    </span>
-
+                           id="appointmentDate"
+                           min="@todayStr"
+                           class="form-control" />
+                    <span asp-validation-for="AppointmentDate" class="text-danger small"></span>
                 </div>
 
-
-                <!-- TIME -->
-
-                <div class="col-md-6 mb-4">
-
-                    <label for="AppointmentTime"
-                           class="form-label">
-                        Appointment Time
-                    </label>
-
+                <div class="col-md-6">
+                    <label asp-for="AppointmentTime" class="form-label">Appointment Time</label>
                     <input asp-for="AppointmentTime"
                            type="time"
+                           id="appointmentTime"
                            class="form-control" />
-
-                    <span asp-validation-for="AppointmentTime"
-                          class="validation">
-                    </span>
-
+                    <span asp-validation-for="AppointmentTime" class="text-danger small" id="timeValidationMsg"></span>
                 </div>
-
             </div>
 
-
-            <button type="submit"
-                    class="booking-btn">
+            <button type="submit" class="btn-confirm-booking">
                 Confirm Appointment
             </button>
-
-
         </form>
 
-
-        <a asp-controller="Customer"
-           asp-action="Dashboard"
-           class="back-link">
+        <a asp-controller="Customer" asp-action="Dashboard" class="back-dashboard-link">
             ← Back to Dashboard
         </a>
-
     </div>
-
 </div>
-
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const dateInput = document.getElementById("appointmentDate");
+            const timeInput = document.getElementById("appointmentTime");
+            const form = document.getElementById("appointmentForm");
+            const timeMsg = document.getElementById("timeValidationMsg");
+
+            function getCurrentTimeHHMM() {
+                const now = new Date();
+                const hh = String(now.getHours()).padStart(2, "0");
+                const mm = String(now.getMinutes()).padStart(2, "0");
+                return `${hh}:${mm}`;
+            }
+
+            function getTodayYYYYMMDD() {
+                const now = new Date();
+                const yyyy = now.getFullYear();
+                const mm = String(now.getMonth() + 1).padStart(2, "0");
+                const dd = String(now.getDate()).padStart(2, "0");
+                return `${yyyy}-${mm}-${dd}`;
+            }
+
+            function syncTimeMin() {
+                if (!dateInput || !timeInput) return;
+                if (dateInput.value === getTodayYYYYMMDD()) {
+                    timeInput.min = getCurrentTimeHHMM();
+                } else {
+                    timeInput.removeAttribute("min");
+                }
+            }
+
+            dateInput?.addEventListener("change", syncTimeMin);
+            syncTimeMin();
+
+            form?.addEventListener("submit", function (e) {
+                if (!dateInput || !timeInput) return;
+                if (timeMsg) {
+                    timeMsg.textContent = "";
+                }
+                if (dateInput.value === getTodayYYYYMMDD() && timeInput.value && timeInput.value < getCurrentTimeHHMM()) {
+                    e.preventDefault();
+                    if (timeMsg) {
+                        timeMsg.textContent = "Jo time khatam ho gaya hai usme appointment nahi le sakte.";
+                    }
+                }
+            });
+        })();
+    </script>
 }

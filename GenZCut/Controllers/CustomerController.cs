@@ -488,7 +488,6 @@ namespace GenZCut.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Password field ko profile update ke liye ModelState se hata dete hain taaki blank hone par error na aaye
             ModelState.Remove("Password");
 
             if (string.IsNullOrWhiteSpace(customer.FullName))
@@ -511,13 +510,11 @@ namespace GenZCut.Controllers
                 using SqlConnection connection = new SqlConnection(_connectionString);
                 connection.Open();
 
-                // 1. UPDATE USERS TABLE
                 string userUpdateQuery = @"
                     UPDATE Users 
                     SET FullName = @FullName, 
                         Phone = @Phone";
 
-                // Sirf tabhi password update karein jab user ne naya password dala ho
                 bool updatePassword = !string.IsNullOrWhiteSpace(customer.Password);
                 if (updatePassword)
                 {
@@ -542,7 +539,6 @@ namespace GenZCut.Controllers
                     userCmd.ExecuteNonQuery();
                 }
 
-                // 2. UPDATE CUSTOMERS TABLE
                 string customerUpdateQuery = @"
                     UPDATE Customers 
                     SET Address = @Address, 
@@ -648,7 +644,7 @@ namespace GenZCut.Controllers
 
 
             // ---------------------------------------------
-            // TIME VALIDATION
+            // TIME VALIDATION (UPDATED: PAST TIME BLOCK)
             // ---------------------------------------------
 
             if (appointment.AppointmentTime <=
@@ -657,6 +653,13 @@ namespace GenZCut.Controllers
                 ModelState.AddModelError(
                     "AppointmentTime",
                     "Please select a valid appointment time.");
+            }
+            else if (appointment.AppointmentDate.Date == DateTime.Today &&
+                     appointment.AppointmentTime < DateTime.Now.TimeOfDay)
+            {
+                ModelState.AddModelError(
+                    "AppointmentTime",
+                    $"This time has already passed. Please select a time after {DateTime.Now:hh:mm tt}.");
             }
 
 
@@ -681,14 +684,17 @@ namespace GenZCut.Controllers
 
 
                 // ---------------------------------------------
-                // CHECK BARBER
+                // CHECK BARBER (UPDATED: JOIN USERS + ROLE)
                 // ---------------------------------------------
 
                 string barberCheckQuery = @"
                     SELECT COUNT(*)
-                    FROM Barbers
-                    WHERE BarberId = @BarberId
-                    AND Status = 'Active'";
+                    FROM Barbers b
+                    INNER JOIN Users u
+                        ON b.UserId = u.UserId
+                    WHERE b.BarberId = @BarberId
+                    AND b.Status = 'Active'
+                    AND u.Role = 'Barber'";
 
                 using SqlCommand barberCheckCommand =
                     new SqlCommand(
@@ -956,7 +962,7 @@ namespace GenZCut.Controllers
 
 
         // =====================================================
-        // LOAD ACTIVE BARBERS
+        // LOAD ACTIVE BARBERS (UPDATED: FULLNAME FROM USERS)
         // =====================================================
 
         private List<Barber> GetActiveBarbers()
@@ -971,14 +977,18 @@ namespace GenZCut.Controllers
 
             string query = @"
                 SELECT
-                    BarberId,
-                    UserId,
-                    Experience,
-                    Specialization,
-                    Status
-                FROM Barbers
-                WHERE Status = 'Active'
-                ORDER BY Experience DESC";
+                    b.BarberId,
+                    b.UserId,
+                    u.FullName,
+                    b.Experience,
+                    b.Specialization,
+                    b.Status
+                FROM Barbers b
+                INNER JOIN Users u
+                    ON b.UserId = u.UserId
+                WHERE b.Status = 'Active'
+                AND u.Role = 'Barber'
+                ORDER BY u.FullName ASC, b.Experience DESC";
 
             using SqlCommand command =
                 new SqlCommand(query, connection);
@@ -988,6 +998,15 @@ namespace GenZCut.Controllers
 
             while (reader.Read())
             {
+                string fullName = reader["FullName"] == DBNull.Value
+                    ? ""
+                    : reader["FullName"].ToString()!.Trim();
+
+                if (string.IsNullOrWhiteSpace(fullName))
+                {
+                    fullName = $"Barber #{reader["BarberId"]}";
+                }
+
                 barbers.Add(
                     new Barber
                     {
@@ -998,6 +1017,8 @@ namespace GenZCut.Controllers
                         UserId =
                             Convert.ToInt32(
                                 reader["UserId"]),
+
+                        FullName = fullName,
 
                         Experience =
                             reader["Experience"] == DBNull.Value
@@ -1238,4 +1259,4 @@ namespace GenZCut.Controllers
             return RedirectToAction("Index", "Home");
         }
     }
-}   
+}

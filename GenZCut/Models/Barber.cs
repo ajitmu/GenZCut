@@ -6,6 +6,8 @@
 
         public int UserId { get; set; }
 
+        public string FullName { get; set; } = "";
+
         public int Experience { get; set; }
 
         public string Specialization { get; set; } = "";

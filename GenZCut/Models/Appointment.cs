@@ -19,6 +19,7 @@ namespace GenZCut.Models
         public DateTime AppointmentDate { get; set; }
 
         [Required(ErrorMessage = "Please select an appointment time.")]
+        [DataType(DataType.Time)]
         public TimeSpan AppointmentTime { get; set; }
 
         public string Status { get; set; } = "Pending";
