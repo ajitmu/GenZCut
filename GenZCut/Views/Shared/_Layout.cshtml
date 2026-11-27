@@ -1,5 +1,18 @@
 ﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 
+@{
+    var session = HttpContextAccessor.HttpContext?.Session;
+    int? userId = session?.GetInt32("UserId");
+    string userName = session?.GetString("UserName") ?? "";
+    string userRole = session?.GetString("UserRole") ?? "";
+
+    string customerEmail = session?.GetString("CustomerEmail") ?? "";
+    string customerName = session?.GetString("CustomerName") ?? "";
+
+    bool isLoggedIn = userId != null || !string.IsNullOrEmpty(customerEmail);
+    string displayName = !string.IsNullOrEmpty(userName) ? userName : customerName;
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,16 +75,26 @@
                 <!-- Navbar Links -->
                 <div class="collapse navbar-collapse" id="navbarContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
-                        @if (HttpContextAccessor.HttpContext?.Session.GetString("CustomerEmail") == null)
+                        @if (!isLoggedIn)
                         {
-                            <!-- Agar logged out hai toh Home dikhao -->
                             <li class="nav-item">
                                 <a class="nav-link text-light" asp-controller="Home" asp-action="Index">Home</a>
                             </li>
                         }
+                        else if (string.Equals(userRole, "Barber", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="Barber" asp-action="Dashboard">Dashboard</a>
+                            </li>
+                        }
+                        else if (string.Equals(userRole, "Admin", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="Admin" asp-action="Dashboard">Dashboard</a>
+                            </li>
+                        }
                         else
                         {
-                            <!-- Agar logged in hai toh Home hata kar Dashboard aur Appointments dikhao -->
                             <li class="nav-item">
                                 <a class="nav-link text-light" asp-controller="Customer" asp-action="Dashboard">Dashboard</a>
                             </li>
@@ -83,28 +106,45 @@
 
                     <!-- Right Side Auth Buttons -->
                     <ul class="navbar-nav ms-auto align-items-center gap-2">
-                        @if (HttpContextAccessor.HttpContext?.Session.GetString("CustomerEmail") != null)
+                        @if (isLoggedIn)
                         {
-                            <!-- Logged In State -->
                             <li class="nav-item">
-                                <a class="nav-link text-warning fw-bold" asp-controller="Customer" asp-action="Profile">
-                                    👤 @HttpContextAccessor.HttpContext?.Session.GetString("CustomerName")
-                                </a>
+                                <span class="nav-link text-warning fw-bold">
+                                    👤 @(string.IsNullOrEmpty(displayName) ? userRole : displayName)
+                                </span>
                             </li>
-                            <li class="nav-item">
-                                <a class="btn btn-outline-danger btn-sm px-3 py-2 rounded-pill text-decoration-none" asp-controller="Customer" asp-action="Logout">
-                                    Logout
-                                </a>
-                            </li>
+                            @if (string.Equals(userRole, "Barber", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <li class="nav-item">
+                                    <a class="btn btn-outline-danger btn-sm px-3 py-2 rounded-pill text-decoration-none" asp-controller="Barber" asp-action="Logout">
+                                        Logout
+                                    </a>
+                                </li>
+                            }
+                            else if (string.Equals(userRole, "Admin", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <li class="nav-item">
+                                    <a class="btn btn-outline-danger btn-sm px-3 py-2 rounded-pill text-decoration-none" asp-controller="Admin" asp-action="Logout">
+                                        Logout
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="btn btn-outline-danger btn-sm px-3 py-2 rounded-pill text-decoration-none" asp-controller="Customer" asp-action="Logout">
+                                        Logout
+                                    </a>
+                                </li>
+                            }
                         }
                         else
                         {
-                            <!-- Logged Out State -->
                             <li class="nav-item">
-                                <a class="nav-link text-light" asp-controller="Customer" asp-action="Login">Login</a>
+                                <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-nav-gold btn-sm px-4 py-2 text-decoration-none" asp-controller="Customer" asp-action="Register">
+                                <a class="btn btn-nav-gold btn-sm px-4 py-2 text-decoration-none" asp-controller="Account" asp-action="Register">
                                     Get Started
                                 </a>
                             </li>

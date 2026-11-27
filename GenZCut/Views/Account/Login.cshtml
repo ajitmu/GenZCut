@@ -2,167 +2,142 @@
 
 @{
     ViewData["Title"] = "Login";
-    Layout = null;
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - GenZCut</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    .auth-wrapper {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0f2027;
+        background: linear-gradient(135deg, #16222a 0%, #203a43 50%, #2c5364 100%);
+        padding: 40px 15px;
+    }
 
-    <style>
-            body {
-                font-family: 'Poppins', sans-serif;
-                background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 30px 15px;
-                margin: 0;
-            }
+    .auth-card {
+        width: 100%;
+        max-width: 420px;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 36px 32px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
 
-            .login-card {
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 20px;
-                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-                overflow: hidden;
-                width: 100%;
-                max-width: 420px;
-                padding: 40px 30px;
-                transition: transform 0.3s ease;
-            }
+    .auth-badge {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #ff4b5c;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 14px;
+        font-size: 20px;
+        font-weight: 700;
+    }
 
-                .login-card:hover {
-                    transform: translateY(-5px);
-                }
+    .auth-title {
+        font-weight: 800;
+        color: #171717;
+        margin-bottom: 4px;
+    }
 
-            .brand-logo {
-                width: 70px;
-                height: 70px;
-                background: linear-gradient(135deg, #ff416c, #ff4b2b);
-                color: #fff;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 32px;
-                margin: 0 auto 15px auto;
-                box-shadow: 0 8px 20px rgba(255, 65, 108, 0.4);
-            }
+    .auth-subtitle {
+        color: #6c757d;
+        font-size: 13.5px;
+        margin-bottom: 22px;
+    }
 
-            .form-floating input {
-                border-radius: 12px;
-                border: 1px solid #e0e0e0;
-                padding-left: 45px !important;
-                height: 55px;
-            }
+    .btn-login-primary {
+        background: linear-gradient(90deg, #ff5f6d 0%, #ff4b5c 100%);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        padding: 11px;
+        border-radius: 10px;
+        width: 100%;
+        transition: 0.2s;
+    }
 
-            .form-floating label {
-                padding-left: 45px;
-            }
+        .btn-login-primary:hover {
+            opacity: 0.95;
+            color: #fff;
+        }
 
-            .form-floating input:focus {
-                border-color: #ff4b2b;
-                box-shadow: 0 0 8px rgba(255, 75, 43, 0.25);
-            }
+    .back-home-link {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 13px;
+        color: #555;
+        text-decoration: none;
+        font-weight: 500;
+    }
 
-            .input-icon {
-                position: absolute;
-                top: 18px;
-                left: 15px;
-                z-index: 10;
-                color: #888;
-                font-size: 18px;
-            }
+        .back-home-link:hover {
+            color: #111;
+            text-decoration: underline;
+        }
+</style>
 
-            .btn-custom {
-                background: linear-gradient(135deg, #ff416c, #ff4b2b);
-                border: none;
-                border-radius: 12px;
-                color: white;
-                font-weight: 600;
-                font-size: 16px;
-                height: 50px;
-                letter-spacing: 0.5px;
-                box-shadow: 0 8px 20px rgba(255, 65, 108, 0.3);
-                transition: all 0.3s ease;
-            }
-
-                .btn-custom:hover {
-                    background: linear-gradient(135deg, #ff4b2b, #ff416c);
-                    box-shadow: 0 12px 25px rgba(255, 65, 108, 0.5);
-                    color: white;
-                }
-
-            .footer-text {
-                font-size: 13px;
-                color: #777;
-            }
-    </style>
-</head>
-<body>
-
-    <div class="login-card">
-        <div class="brand-logo">
-            <i class="fa-solid fa-scissors"></i>
-        </div>
-
-        <h3 class="text-center fw-bold mb-1" style="color: #2c5364;">GenZCut</h3>
-        <p class="text-center text-muted small mb-4">Welcome back! Please login to your account.</p>
+<div class="auth-wrapper">
+    <div class="auth-card text-center">
+        <div class="auth-badge">✂</div>
+        <h3 class="auth-title">GenZCut</h3>
+        <p class="auth-subtitle">Welcome back! Please login to your account.</p>
 
         @if (TempData["SuccessMsg"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show rounded-3 text-center py-2 fs-6 mb-3" role="alert">
-                <i class="fa-solid fa-circle-check me-1"></i> @TempData["SuccessMsg"]
+            <div class="alert alert-success py-2 small text-start">
+                @TempData["SuccessMsg"]
             </div>
         }
 
         @if (ViewBag.Error != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show rounded-3 text-center py-2 fs-6 mb-3" role="alert">
-                <i class="fa-solid fa-triangle-exclamation me-1"></i> @ViewBag.Error
+            <div class="alert alert-danger py-2 small text-start">
+                ▲ @ViewBag.Error
             </div>
         }
 
-        <form asp-action="Login" method="post">
-            <div class="form-floating mb-3 position-relative">
-                <i class="fa-solid fa-envelope input-icon"></i>
-                <input asp-for="Email" class="form-control" id="floatingEmail" placeholder="name@example.com" required />
-                <label for="floatingEmail">Email Address</label>
+        <form asp-controller="Account" asp-action="Login" method="post" class="text-start">
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label small text-muted mb-1">Email Address</label>
+                <input asp-for="Email" class="form-control" placeholder="Enter your email" />
                 <span asp-validation-for="Email" class="text-danger small"></span>
             </div>
 
-            <div class="form-floating mb-4 position-relative">
-                <i class="fa-solid fa-lock input-icon"></i>
-                <input asp-for="Password" type="password" class="form-control" id="floatingPassword" placeholder="Password" required />
-                <label for="floatingPassword">Password</label>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label small text-muted mb-1">Password</label>
+                <input asp-for="Password" type="password" class="form-control" placeholder="Password" />
                 <span asp-validation-for="Password" class="text-danger small"></span>
             </div>
 
-            <button type="submit" class="btn btn-custom w-100 mb-3">
-                <i class="fa-solid fa-right-to-bracket me-2"></i> Log In
+            <button type="submit" class="btn-login-primary mt-1">
+                → Log In
             </button>
         </form>
 
-        <div class="text-center mt-2">
-            <p class="text-muted small mb-0">Don't have an account? <a asp-action="Register" class="fw-bold text-decoration-none" style="color: #ff4b2b;">Sign Up</a></p>
+        <div class="mt-3 small text-muted">
+            Don't have an account?
+            <a asp-controller="Account" asp-action="Register" class="text-danger fw-semibold text-decoration-none">Sign Up</a>
         </div>
 
-        <div class="text-center footer-text mt-3">
-            <p class="mb-0">&copy; 2026 GenZCut Salon Management. All rights reserved.</p>
+        <div>
+            <a asp-controller="Home" asp-action="Index" class="back-home-link">
+                ← Back to Home
+            </a>
+        </div>
+
+        <div class="mt-4 pt-2 border-top text-muted" style="font-size: 11.5px;">
+            © 2026 GenZCut Salon Management. All rights reserved.
         </div>
     </div>
+</div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-</body>
-</html>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

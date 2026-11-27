@@ -1,169 +1,189 @@
 ﻿@model GenZCut.Models.LoginViewModel
 
 @{
-    ViewData["Title"] = "Barber Login";
-    Layout = null;
+    ViewData["Title"] = "Barber Partner Login";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Barber Login - GenZCut</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    .barber-login-page {
+        min-height: calc(100vh - 120px);
+        background: #f7f7f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+    }
 
-    <style>
-            body {
-                font-family: 'Poppins', sans-serif;
-                background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 30px 15px;
-                margin: 0;
+    .barber-login-card {
+        width: 100%;
+        max-width: 440px;
+        background: #ffffff;
+        border: 1px solid #eaeaea;
+        border-radius: 22px;
+        padding: 40px 36px;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
+    }
+
+    .barber-brand-badge {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #171717;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 18px;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+    }
+
+    .barber-login-title {
+        font-size: 30px;
+        font-weight: 800;
+        color: #171717;
+        margin-bottom: 6px;
+        letter-spacing: -0.5px;
+    }
+
+    .barber-login-subtitle {
+        color: #777777;
+        font-size: 14px;
+        margin-bottom: 26px;
+    }
+
+    .barber-login-card .form-label {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #222222;
+        margin-bottom: 6px;
+    }
+
+    .barber-login-card .form-control {
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid #dcdcdc;
+        font-size: 14px;
+        color: #171717;
+    }
+
+        .barber-login-card .form-control::placeholder {
+            color: #9b9b9b;
+        }
+
+        .barber-login-card .form-control:focus {
+            border-color: #171717;
+            box-shadow: 0 0 0 0.15rem rgba(23, 23, 23, 0.12);
+        }
+
+    .btn-barber-submit {
+        width: 100%;
+        background: #171717;
+        color: #ffffff;
+        border: none;
+        border-radius: 10px;
+        padding: 13px 20px;
+        font-size: 15px;
+        font-weight: 600;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+        .btn-barber-submit:hover {
+            background: #c9a227;
+            color: #111111;
+        }
+
+    .barber-footer-links {
+        margin-top: 22px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .barber-register-text {
+        font-size: 13.5px;
+        color: #777777;
+        margin: 0;
+    }
+
+        .barber-register-text a {
+            color: #c9a227;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+            .barber-register-text a:hover {
+                text-decoration: underline;
             }
 
-            .login-card {
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 20px;
-                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-                overflow: hidden;
-                width: 100%;
-                max-width: 420px;
-                padding: 40px 30px;
-                transition: transform 0.3s ease;
-            }
+    .back-home-link {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #555555;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
 
-                .login-card:hover {
-                    transform: translateY(-5px);
-                }
+        .back-home-link:hover {
+            color: #171717;
+            text-decoration: underline;
+        }
+</style>
 
-            .brand-logo {
-                width: 70px;
-                height: 70px;
-                background: linear-gradient(135deg, #ff416c, #ff4b2b);
-                color: #fff;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 32px;
-                margin: 0 auto 15px auto;
-                box-shadow: 0 8px 20px rgba(255, 65, 108, 0.4);
-            }
-
-            .form-floating input {
-                border-radius: 12px;
-                border: 1px solid #e0e0e0;
-                padding-left: 45px !important;
-                height: 55px;
-            }
-
-            .form-floating label {
-                padding-left: 45px;
-            }
-
-            .form-floating input:focus {
-                border-color: #ff4b2b;
-                box-shadow: 0 0 8px rgba(255, 75, 43, 0.25);
-            }
-
-            .input-icon {
-                position: absolute;
-                top: 18px;
-                left: 15px;
-                z-index: 10;
-                color: #888;
-                font-size: 18px;
-            }
-
-            .btn-custom {
-                background: linear-gradient(135deg, #ff416c, #ff4b2b);
-                border: none;
-                border-radius: 12px;
-                color: white;
-                font-weight: 600;
-                font-size: 16px;
-                height: 50px;
-                letter-spacing: 0.5px;
-                box-shadow: 0 8px 20px rgba(255, 65, 108, 0.3);
-                transition: all 0.3s ease;
-            }
-
-                .btn-custom:hover {
-                    background: linear-gradient(135deg, #ff4b2b, #ff416c);
-                    box-shadow: 0 12px 25px rgba(255, 65, 108, 0.5);
-                    color: white;
-                }
-
-            .footer-text {
-                font-size: 13px;
-                color: #777;
-            }
-    </style>
-</head>
-<body>
-
-    <div class="login-card">
-        <div class="brand-logo">
-            <i class="fa-solid fa-scissors"></i>
-        </div>
-
-        <h3 class="text-center fw-bold mb-1" style="color: #2c5364;">GenZCut</h3>
-        <p class="text-center text-muted small mb-4">Barber Partner Portal — Please log in</p>
+<div class="barber-login-page">
+    <div class="barber-login-card text-center">
+        <div class="barber-brand-badge">✂</div>
+        <h1 class="barber-login-title">Welcome Back</h1>
+        <p class="barber-login-subtitle">Login to your GenZCut barber partner account</p>
 
         @if (TempData["SuccessMsg"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show rounded-3 text-center py-2 fs-6 mb-3" role="alert">
-                <i class="fa-solid fa-circle-check me-1"></i> @TempData["SuccessMsg"]
+            <div class="alert alert-success py-2 small text-start rounded-3">
+                @TempData["SuccessMsg"]
             </div>
         }
 
         @if (ViewBag.Error != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show rounded-3 text-center py-2 fs-6 mb-3" role="alert">
-                <i class="fa-solid fa-triangle-exclamation me-1"></i> @ViewBag.Error
+            <div class="alert alert-danger py-2 small text-start rounded-3">
+                @ViewBag.Error
             </div>
         }
 
-        <form asp-action="BarberLogin" method="post">
-            <div class="form-floating mb-3 position-relative">
-                <i class="fa-solid fa-envelope input-icon"></i>
-                <input asp-for="Email" class="form-control" id="floatingEmail" placeholder="name@example.com" required />
-                <label for="floatingEmail">Email Address</label>
+        <form asp-controller="Account" asp-action="BarberLogin" method="post" class="text-start">
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Email Address</label>
+                <input asp-for="Email" class="form-control" placeholder="Enter your email" />
                 <span asp-validation-for="Email" class="text-danger small"></span>
             </div>
 
-            <div class="form-floating mb-4 position-relative">
-                <i class="fa-solid fa-lock input-icon"></i>
-                <input asp-for="Password" type="password" class="form-control" id="floatingPassword" placeholder="Password" required />
-                <label for="floatingPassword">Password</label>
+            <div class="mb-4">
+                <label asp-for="Password" class="form-label">Password</label>
+                <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
                 <span asp-validation-for="Password" class="text-danger small"></span>
             </div>
 
-            <button type="submit" class="btn btn-custom w-100 mb-3">
-                <i class="fa-solid fa-right-to-bracket me-2"></i> Log In as Barber
+            <button type="submit" class="btn-barber-submit">
+                Login
             </button>
         </form>
 
-        <div class="text-center mt-2">
-            <p class="text-muted small mb-1">New Barber Partner? <a asp-action="BarberRegister" class="fw-bold text-decoration-none" style="color: #ff4b2b;">Register Here</a></p>
-            <p class="text-muted small mb-0">Customer or Admin? <a asp-action="Login" class="text-decoration-none fw-semibold" style="color: #2c5364;">Main Login</a></p>
-        </div>
-
-        <div class="text-center footer-text mt-3">
-            <p class="mb-0">&copy; 2026 GenZCut Salon Management. All rights reserved.</p>
+        <div class="barber-footer-links">
+            <p class="barber-register-text">
+                Don't have a barber account?
+                <a asp-controller="Account" asp-action="BarberRegister">Create Account</a>
+            </p>
+            <a asp-controller="Home" asp-action="Index" class="back-home-link">
+                ← Back to Home
+            </a>
         </div>
     </div>
+</div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-</body>
-</html>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

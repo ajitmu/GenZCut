@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
@@ -16,8 +17,33 @@ namespace GenZCut.Controllers
         private string GetConnectionString() =>
             _configuration.GetConnectionString("DefaultConnection")!;
 
-        private bool IsLoggedIn() =>
-            !string.IsNullOrEmpty(HttpContext.Session.GetString("AdminEmail"));
+        private bool IsLoggedIn()
+        {
+            string? adminEmail = HttpContext.Session.GetString("AdminEmail");
+            string? userRole = HttpContext.Session.GetString("UserRole");
+            int? userId = HttpContext.Session.GetInt32("UserId");
+
+            return !string.IsNullOrEmpty(adminEmail)
+                || (string.Equals(userRole, "Admin", StringComparison.OrdinalIgnoreCase) && userId.HasValue);
+        }
+
+        private static bool VerifyPassword(string storedPassword, string enteredPassword)
+        {
+            if (string.IsNullOrEmpty(storedPassword))
+            {
+                return false;
+            }
+
+            var hasher = new PasswordHasher<object>();
+            var result = hasher.VerifyHashedPassword(new object(), storedPassword, enteredPassword);
+
+            if (result == PasswordVerificationResult.Success || result == PasswordVerificationResult.SuccessRehashNeeded)
+            {
+                return true;
+            }
+
+            return storedPassword == enteredPassword;
+        }
 
         // 1. Login
         [HttpGet]
@@ -29,20 +55,77 @@ namespace GenZCut.Controllers
         [HttpPost]
         public IActionResult Login(string email, string password)
         {
+            string cleanEmail = (email ?? "").Trim();
+
             using (SqlConnection conn = new SqlConnection(GetConnectionString()))
             {
-                string query = "SELECT TOP 1 Email FROM dbo.Admins WHERE Email = @Email AND Password = @Password";
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@Email", email.Trim());
-                    cmd.Parameters.AddWithValue("@Password", password);
+                conn.Open();
 
-                    conn.Open();
-                    var result = cmd.ExecuteScalar();
-                    if (result != null)
+                // 1) Check dbo.Users where Role = 'Admin'
+                string userQuery = @"
+                    SELECT TOP 1 UserId, FullName, Email, Password
+                    FROM dbo.Users
+                    WHERE Email = @Email AND Role = 'Admin'";
+
+                using (SqlCommand userCmd = new SqlCommand(userQuery, conn))
+                {
+                    userCmd.Parameters.AddWithValue("@Email", cleanEmail);
+
+                    using (SqlDataReader reader = userCmd.ExecuteReader())
                     {
-                        HttpContext.Session.SetString("AdminEmail", result.ToString()!);
-                        return RedirectToAction("Dashboard");
+                        if (reader.Read())
+                        {
+                            string storedHash = reader["Password"].ToString() ?? "";
+                            if (VerifyPassword(storedHash, password))
+                            {
+                                string adminEmail = reader["Email"].ToString() ?? cleanEmail;
+                                string fullName = reader["FullName"].ToString() ?? "Admin";
+                                int userId = Convert.ToInt32(reader["UserId"]);
+
+                                HttpContext.Session.SetString("AdminEmail", adminEmail);
+                                HttpContext.Session.SetString("AdminName", fullName);
+                                HttpContext.Session.SetString("UserName", fullName);
+                                HttpContext.Session.SetString("UserRole", "Admin");
+                                HttpContext.Session.SetInt32("UserId", userId);
+
+                                return RedirectToAction("Dashboard");
+                            }
+                        }
+                    }
+                }
+
+                // 2) Fallback: Check dbo.Admins if table exists
+                string adminQuery = @"
+                    SELECT TOP 1 Email, Password
+                    FROM dbo.Admins
+                    WHERE Email = @Email";
+
+                using (SqlCommand adminCmd = new SqlCommand(adminQuery, conn))
+                {
+                    adminCmd.Parameters.AddWithValue("@Email", cleanEmail);
+
+                    try
+                    {
+                        using (SqlDataReader reader = adminCmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                string storedPassword = reader["Password"].ToString() ?? "";
+                                if (VerifyPassword(storedPassword, password))
+                                {
+                                    string adminEmail = reader["Email"].ToString() ?? cleanEmail;
+
+                                    HttpContext.Session.SetString("AdminEmail", adminEmail);
+                                    HttpContext.Session.SetString("UserRole", "Admin");
+
+                                    return RedirectToAction("Dashboard");
+                                }
+                            }
+                        }
+                    }
+                    catch (SqlException)
+                    {
+                        // Agar dbo.Admins table nahi hai to ignore karke invalid credentials dikhayega
                     }
                 }
             }
@@ -55,7 +138,13 @@ namespace GenZCut.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Remove("AdminEmail");
-            return RedirectToAction("Login");
+            HttpContext.Session.Remove("AdminName");
+            HttpContext.Session.Remove("AdminId");
+            HttpContext.Session.Remove("AdminUserId");
+            HttpContext.Session.Remove("UserRole");
+            HttpContext.Session.Remove("UserId");
+            HttpContext.Session.Remove("UserName");
+            return RedirectToAction("Index", "Home");
         }
 
         // 2. Dashboard
@@ -66,7 +155,9 @@ namespace GenZCut.Controllers
             using (SqlConnection conn = new SqlConnection(GetConnectionString()))
             {
                 conn.Open();
-                ViewBag.AdminEmail = HttpContext.Session.GetString("AdminEmail");
+                ViewBag.AdminEmail = HttpContext.Session.GetString("AdminEmail")
+                    ?? HttpContext.Session.GetString("UserName")
+                    ?? "Admin";
                 ViewBag.TotalCustomers = GetCount(conn, "SELECT COUNT(*) FROM dbo.Customers");
                 ViewBag.TotalBarbers = GetCount(conn, "SELECT COUNT(*) FROM dbo.Barbers");
                 ViewBag.TotalHairstyles = GetCount(conn, "SELECT COUNT(*) FROM dbo.Hairstyles");

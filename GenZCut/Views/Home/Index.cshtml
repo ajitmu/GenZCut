@@ -176,7 +176,7 @@
     </div>
 </div>
 
-<!-- 3. ACCESS PORTALS / ROLE ACCESS SECTION (MOVED TO BOTTOM) -->
+<!-- 3. ACCESS PORTALS / ROLE ACCESS SECTION -->
 <div class="section-padding">
     <div class="container">
         <div class="text-center mb-5">
@@ -203,7 +203,9 @@
                     <div class="portal-icon">💈</div>
                     <h3 class="h5 fw-bold text-dark">Barber Portal</h3>
                     <p class="text-muted small mb-4">View assigned appointments, manage daily schedules, and client notes.</p>
-                    <span class="badge bg-secondary text-light py-2 px-3 rounded-pill">Managed by Team Member</span>
+                    <a asp-controller="Account" asp-action="BarberLogin" class="btn btn-dark w-100 py-2 rounded-pill fw-bold">
+                        Barber Login
+                    </a>
                 </div>
             </div>
 
@@ -213,7 +215,9 @@
                     <div class="portal-icon">⚙️</div>
                     <h3 class="h5 fw-bold text-dark">Admin Portal</h3>
                     <p class="text-muted small mb-4">Oversee total salon operations, barbers, services, and system analytics.</p>
-                    <span class="badge bg-secondary text-light py-2 px-3 rounded-pill">Managed by Team Member</span>
+                    <a asp-controller="Account" asp-action="AdminLogin" class="btn btn-dark w-100 py-2 rounded-pill fw-bold">
+                        Admin Login
+                    </a>
                 </div>
             </div>
         </div>

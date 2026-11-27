@@ -100,13 +100,15 @@ namespace GenZCut.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            string statusValue = isAvailable ? "Active" : "Inactive";
+
             using (SqlConnection conn = new SqlConnection(GetConnectionString()))
             {
-                string query = "UPDATE Barbers SET IsAvailable = @IsAvailable WHERE BarberId = @BarberId";
+                string query = "UPDATE Barbers SET Status = @Status WHERE BarberId = @BarberId";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@IsAvailable", isAvailable);
+                    cmd.Parameters.AddWithValue("@Status", statusValue);
                     cmd.Parameters.AddWithValue("@BarberId", barberId.Value);
 
                     conn.Open();
@@ -118,11 +120,11 @@ namespace GenZCut.Controllers
             return RedirectToAction("Dashboard");
         }
 
-        // 4. Logout Logicr
+        // 4. Logout Logic
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
-            return RedirectToAction("Login", "Account");
+            return RedirectToAction("Index", "Home");
         }
     }
 }
